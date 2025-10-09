@@ -3,109 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Homework 1 – Statistics for Cybersecurity – Alessandro Polidori</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=VT323&family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
-    <style>
-        /* Theme copied from index.html to keep a consistent look */
-        :root {
-            --bg-color: #0d021a;
-            --scanline-color: rgba(23, 228, 13, 0.1);
-            --text-color: #0ff;
-            --glow-color: rgba(0, 255, 255, 0.3);
-            --accent-color: #f0f;
-            --accent-glow-color: rgba(255, 0, 255, 0.3);
-            --muted-color: #a0a0c0;
-            --card-bg: rgba(23, 0, 46, 0.4);
-        }
-
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        html, body { height: 100%; }
-        body {
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            font-family: 'VT323', monospace;
-            font-size: 1.1rem;
-            text-shadow: 0 0 5px var(--glow-color);
-            -webkit-font-smoothing: antialiased;
-            padding-bottom: 2rem;
-        }
-
-        .crt-container { width: 100%; min-height: 100vh; position: relative; }
-        .crt-container::after {
-            content: "";
-            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-            background: repeating-linear-gradient(
-                to bottom,
-                transparent 0,
-                transparent 2px,
-                var(--scanline-color) 3px,
-                var(--scanline-color) 4px
-            );
-            pointer-events: none; z-index: 4; animation: scanlines 10s linear infinite;
-        }
-        @keyframes scanlines { from { background-position: 0 0; } to { background-position: 0 100%; } }
-
-        .content-wrapper { max-width: 900px; margin: 0 auto; padding: 2rem; position: relative; z-index: 2; }
-
-        header.page-hero { text-align: center; margin-bottom: 1.5rem; }
-        header.page-hero h1 { font-family: 'Orbitron', sans-serif; color: var(--accent-color); font-size: 2rem; text-shadow: 0 0 10px var(--accent-glow-color); }
-        header.page-hero p { color: var(--muted-color); margin-top: 0.5rem; }
-
-        .card { background-color: var(--card-bg); border: 1px solid var(--text-color); box-shadow: inset 0 0 15px var(--glow-color), 0 0 15px var(--glow-color); padding: 1.5rem 2rem; margin-bottom: 1.5rem; border-radius: 4px; }
-        .card h2 { font-family: 'Orbitron', sans-serif; color: var(--accent-color); text-shadow: 0 0 8px var(--accent-glow-color); margin-bottom: 1rem; }
-        .card p, .card li { color: var(--muted-color); line-height: 1.6; }
-
-        a.back-link { color: var(--accent-color); text-decoration: none; display: inline-block; margin-top: 1rem; }
-        a.back-link:hover { text-decoration: underline; }
-
-        footer.footer { text-align: center; color: var(--muted-color); margin-top: 2rem; }
-
-        @media (max-width: 768px) {
-            .content-wrapper { padding: 1rem; }
-            header.page-hero h1 { font-size: 1.4rem; }
-        }
-    </style>
+    <title>Homework 1 - Cybersecurity Statistics Blog</title>
+    <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-<div class="crt-container">
-    <div class="content-wrapper">
-        <header class="page-hero">
-            <h1>Homework 1</h1>
-            <p>Statistics for Cybersecurity — Alessandro Polidori // ID: 1906738</p>
-        </header>
+    <header>
+        <h1>Homework 1</h1>
+        <p>Cybersecurity Statistics Blog</p>
+    </header>
+    <main>
+        <h2>What is statistics and why is it useful for cybersecurity?</h2>
+        <p>
+            Statistics is the scientific discipline that deals with the collection, analysis, interpretation,
+            and presentation of data. It provides tools and methodologies to extract meaningful insights
+            from raw information, identify patterns, and make informed decisions under uncertainty.
+        </p>
+        <p>
+            In the context of cybersecurity, statistics is essential for analyzing vast amounts of
+            security-related data, such as network traffic logs, system alerts, and user activity patterns.
+            Through statistical methods, analysts can detect anomalies, estimate the likelihood of attacks,
+            and model risk behaviors.
+        </p>
+        <p>
+            For example, statistical anomaly detection can help identify unusual login attempts or
+            abnormal network flows that may indicate a security breach. Furthermore, statistical reasoning
+            supports the evaluation of security measures, allowing professionals to assess the effectiveness
+            of intrusion detection systems or predict potential vulnerabilities.
+        </p>
+        <p>
+            In summary, statistics provides the foundation for data-driven decision-making in cybersecurity,
+            enabling professionals to move from reactive defense to proactive threat prevention.
+        </p>
 
-        <main>
-            <section class="card">
-                <h2>Question</h2>
-                <p>What is statistics and why is it useful for cybersecurity?</p>
-            </section>
-
-            <section class="card">
-                <h2>Answer</h2>
-                <p>
-                    Statistics is the discipline concerned with the collection, organization, analysis, and interpretation of data, aimed at extracting meaningful information and supporting decision-making under uncertainty. It provides mathematical and methodological tools to model complex phenomena, identify relationships between variables, and estimate the probability of future events.
-                </p>
-
-                <p>
-                    In the context of cybersecurity, statistics plays a crucial role for several reasons:
-                </p>
-
-                <ul>
-                    <li><strong>Security data analysis:</strong> modern systems generate massive volumes of logs and network data. Statistical techniques enable the identification of patterns, anomalies, and deviations from normal behavior—key indicators for intrusion detection or suspicious activity.</li>
-                    <li><strong>Threat and anomaly detection:</strong> using statistical models (e.g., probability distributions, variance analysis, clustering), analysts can build behavioral baselines and detect events that significantly diverge from them, such as DDoS attacks or unauthorized access.</li>
-                    <li><strong>Risk assessment:</strong> statistical methods allow the estimation of the likelihood of security incidents and the quantification of their potential impact, providing a quantitative basis for risk management and prioritization of mitigation strategies.</li>
-                    <li><strong>Support for machine learning:</strong> many machine learning algorithms used in cybersecurity—such as those for malware classification or phishing detection—are grounded in statistical principles. Understanding these foundations improves the ability to interpret model outputs and assess their reliability.</li>
-                    <li><strong>Validation and testing of security systems:</strong> statistical tools are essential for evaluating the performance of detection or authentication systems by analyzing metrics such as false positives, false negatives, accuracy, and precision.</li>
-                </ul>
-            </section>
-
-            <a class="back-link" href="index.html">&larr; Back to home</a>
-        </main>
-
-        <footer class="footer">// ALESSANDRO POLIDORI // 1906738 // HOMEWORK 1 </footer>
-    </div>
-</div>
+        <p><a href="index.html">← Back to Home</a></p>
+    </main>
+    <footer>
+        &copy; 2025 Alessandro Polidori
+    </footer>
 </body>
 </html>

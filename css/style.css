@@ -1,0 +1,44 @@
+body {
+    font-family: "Segoe UI", Arial, sans-serif;
+    background-color: #2f2f2f; /* grigio scuro */
+    color: #ffffff; /* testo bianco */
+    margin: 0;
+    padding: 0;
+}
+
+header {
+    background-color: #800020; /* bordeaux */
+    color: white;
+    padding: 20px;
+    text-align: center;
+}
+
+main {
+    max-width: 800px;
+    margin: 40px auto;
+    padding: 20px 30px;
+    background-color: #3a3a3a; /* grigio leggermente più chiaro per contrasto */
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+h1, h2 {
+    color: #ffccd5; /* tono chiaro del bordeaux */
+}
+
+a {
+    color: #ff99a8; /* bordeaux chiaro per i link */
+    text-decoration: none;
+    font-weight: bold;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+footer {
+    text-align: center;
+    padding: 20px;
+    color: #cccccc;
+    font-size: 0.9em;
+}

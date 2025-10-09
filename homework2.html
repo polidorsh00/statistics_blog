@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Homework 2 - Cybersecurity Statistics Blog</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        th, td {
+            border: 1px solid #777;
+            padding: 8px 12px;
+            text-align: center;
+        }
+        th {
+            background-color: #800020;
+            color: white;
+        }
+        code {
+            display: block;
+            background-color: #1e1e1e;
+            color: #dcdcdc;
+            padding: 10px;
+            border-radius: 6px;
+            margin: 15px 0;
+            font-family: "Courier New", monospace;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Homework 2</h1>
+        <p>Cybersecurity Statistics Blog</p>
+    </header>
+    <main>
+        <h2>Explain the concept of dataset and distribution</h2>
+        <p>
+            A <strong>dataset</strong> is a structured collection of data, typically organized in tables made of
+            rows and columns. Each row represents a single observation (or record), while each column represents
+            a variable (or attribute) describing the data. Datasets are fundamental for any kind of statistical
+            analysis, as they provide the raw material from which we can extract insights.
+        </p>
+        <p>
+            A <strong>distribution</strong> describes how the values of a variable are spread or dispersed across
+            possible outcomes. It allows us to understand the frequency or probability of occurrence for each
+            value (in discrete cases) or interval (in continuous cases). In practice, distributions help identify
+            central tendencies, variability, and anomalies in data.
+        </p>
+
+        <h2>Example: Creating a simple dataset in Access</h2>
+        <p>
+            Let's imagine we want to analyze login attempts to a secure server. We create a table named
+            <code>LoginAttempts</code> with three variables:
+        </p>
+
+        <ul>
+            <li><strong>UserID</strong> – identifier of the user</li>
+            <li><strong>LoginHour</strong> – hour of the login (0–23)</li>
+            <li><strong>Success</strong> – whether the login was successful (1) or failed (0)</li>
+        </ul>
+
+        <h3>SQL commands to create the table</h3>
+        <code>
+CREATE TABLE LoginAttempts (
+    UserID TEXT(10),
+    LoginHour INTEGER,
+    Success INTEGER
+);
+        </code>
+
+        <h3>Insert sample data</h3>
+        <code>
+INSERT INTO LoginAttempts (UserID, LoginHour, Success) VALUES
+('U01', 8, 1),
+('U02', 9, 0),
+('U03', 9, 1),
+('U01', 10, 1),
+('U02', 10, 0),
+('U04', 8, 1),
+('U03', 11, 1),
+('U01', 11, 0);
+        </code>
+
+        <h3>Resulting dataset</h3>
+        <table>
+            <tr><th>UserID</th><th>LoginHour</th><th>Success</th></tr>
+            <tr><td>U01</td><td>8</td><td>1</td></tr>
+            <tr><td>U02</td><td>9</td><td>0</td></tr>
+            <tr><td>U03</td><td>9</td><td>1</td></tr>
+            <tr><td>U01</td><td>10</td><td>1</td></tr>
+            <tr><td>U02</td><td>10</td><td>0</td></tr>
+            <tr><td>U04</td><td>8</td><td>1</td></tr>
+            <tr><td>U03</td><td>11</td><td>1</td></tr>
+            <tr><td>U01</td><td>11</td><td>0</td></tr>
+        </table>
+
+        <h2>Computing univariate distributions (k ≤ 3)</h2>
+
+        <h3>1. Distribution of Success</h3>
+        <code>
+SELECT Success, COUNT(*) AS Frequency
+FROM LoginAttempts
+GROUP BY Success;
+        </code>
+
+        <table>
+            <tr><th>Success</th><th>Frequency</th></tr>
+            <tr><td>1 (Success)</td><td>5</td></tr>
+            <tr><td>0 (Failure)</td><td>3</td></tr>
+        </table>
+
+        <h3>2. Distribution of LoginHour</h3>
+        <code>
+SELECT LoginHour, COUNT(*) AS Frequency
+FROM LoginAttempts
+GROUP BY LoginHour;
+        </code>
+
+        <table>
+            <tr><th>LoginHour</th><th>Frequency</th></tr>
+            <tr><td>8</td><td>2</td></tr>
+            <tr><td>9</td><td>2</td></tr>
+            <tr><td>10</td><td>2</td></tr>
+            <tr><td>11</td><td>2</td></tr>
+        </table>
+
+        <h3>3. Distribution of UserID</h3>
+        <code>
+SELECT UserID, COUNT(*) AS Frequency
+FROM LoginAttempts
+GROUP BY UserID;
+        </code>
+
+        <table>
+            <tr><th>UserID</th><th>Frequency</th></tr>
+            <tr><td>U01</td><td>3</td></tr>
+            <tr><td>U02</td><td>2</td></tr>
+            <tr><td>U03</td><td>2</td></tr>
+            <tr><td>U04</td><td>1</td></tr>
+        </table>
+
+        <h2>Computing a bivariate distribution</h2>
+        <p>
+            A <strong>bivariate distribution</strong> shows how two variables vary together.  
+            For instance, the joint distribution of <code>LoginHour</code> and <code>Success</code>:
+        </p>
+
+        <code>
+SELECT LoginHour, Success, COUNT(*) AS Frequency
+FROM LoginAttempts
+GROUP BY LoginHour, Success;
+        </code>
+
+        <table>
+            <tr><th>LoginHour</th><th>Success</th><th>Frequency</th></tr>
+            <tr><td>8</td><td>1</td><td>2</td></tr>
+            <tr><td>9</td><td>0</td><td>1</td></tr>
+            <tr><td>9</td><td>1</td><td>1</td></tr>
+            <tr><td>10</td><td>0</td><td>1</td></tr>
+            <tr><td>10</td><td>1</td><td>1</td></tr>
+            <tr><td>11</td><td>0</td><td>1</td></tr>
+            <tr><td>11</td><td>1</td><td>1</td></tr>
+        </table>
+
+        <p>
+            From this table, we can observe how successful and failed login attempts are distributed 
+            across different hours. This type of analysis is fundamental for identifying unusual patterns, 
+            such as a spike in failed logins at specific times of day, which might indicate a brute-force attack attempt.
+        </p>
+
+        <p><a href="index.html">← Back to Home</a></p>
+    </main>
+    <footer>
+        &copy; 2025 Alessandro Polidori
+    </footer>
+</body>
+</html>
