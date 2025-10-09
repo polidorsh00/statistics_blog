@@ -85,56 +85,20 @@
             <section class="card">
                 <h2>Answer</h2>
                 <p>
-                    Statistics is the branch of mathematics and data science that deals with collecting, summarizing, analysing, and drawing inferences from data.
-                    It provides principles and methods for turning raw observations into reliable information, quantifying uncertainty, and supporting decisions under uncertainty.
+                    Statistics is the discipline concerned with the collection, organization, analysis, and interpretation of data, aimed at extracting meaningful information and supporting decision-making under uncertainty. It provides mathematical and methodological tools to model complex phenomena, identify relationships between variables, and estimate the probability of future events.
                 </p>
 
-                <h3 style="color:var(--accent-color); margin-top:0.8rem;">Why statistics matters in cybersecurity</h3>
                 <p>
-                    Cybersecurity is fundamentally a data problem: logs, network flows, telemetry from endpoints, vulnerability reports and user behaviour all generate large volumes of data.
-                    Statistics gives a framework to extract signal from noise, detect anomalies, estimate probabilities of events, and evaluate how reliable our conclusions are.
+                    In the context of cybersecurity, statistics plays a crucial role for several reasons:
                 </p>
 
-                <h3 style="color:var(--accent-color); margin-top:0.8rem;">Core applications and concrete examples</h3>
                 <ul>
-                    <li><strong>Anomaly detection:</strong> statistical models (e.g. Gaussian models, mixture models, or non-parametric methods) identify deviations from baseline behaviour in network traffic or process metrics that may indicate breaches.</li>
-                    <li><strong>Intrusion detection systems (IDS):</strong> classifiers trained on labeled examples use statistical learning; evaluating them requires careful use of metrics like precision, recall, F1-score and ROC curves to manage false positives and negatives.</li>
-                    <li><strong>Threat modeling & risk estimation:</strong> probability estimates and confidence intervals help quantify the likelihood and potential impact of different attack vectors, supporting prioritization of mitigations.</li>
-                    <li><strong>Time-series analysis:</strong> methods such as ARIMA, change-point detection or seasonal decomposition detect temporal trends and sudden shifts (e.g. botnet campaigns, DDoS spikes).</li>
-                    <li><strong>Feature extraction & dimensionality reduction:</strong> techniques like PCA and clustering summarize high-dimensional telemetry into informative features for detection and triage.</li>
-                    <li><strong>Experimental evaluation:</strong> A/B tests and hypothesis testing measure the effectiveness of defenses (e.g. a new rule in an IDS) while controlling for chance findings.</li>
+                    <li><strong>Security data analysis:</strong> modern systems generate massive volumes of logs and network data. Statistical techniques enable the identification of patterns, anomalies, and deviations from normal behavior—key indicators for intrusion detection or suspicious activity.</li>
+                    <li><strong>Threat and anomaly detection:</strong> using statistical models (e.g., probability distributions, variance analysis, clustering), analysts can build behavioral baselines and detect events that significantly diverge from them, such as DDoS attacks or unauthorized access.</li>
+                    <li><strong>Risk assessment:</strong> statistical methods allow the estimation of the likelihood of security incidents and the quantification of their potential impact, providing a quantitative basis for risk management and prioritization of mitigation strategies.</li>
+                    <li><strong>Support for machine learning:</strong> many machine learning algorithms used in cybersecurity—such as those for malware classification or phishing detection—are grounded in statistical principles. Understanding these foundations improves the ability to interpret model outputs and assess their reliability.</li>
+                    <li><strong>Validation and testing of security systems:</strong> statistical tools are essential for evaluating the performance of detection or authentication systems by analyzing metrics such as false positives, false negatives, accuracy, and precision.</li>
                 </ul>
-
-                <h3 style="color:var(--accent-color); margin-top:0.8rem;">Typical workflow and methods</h3>
-                <ol>
-                    <li><strong>Data collection & cleaning:</strong> aggregate logs, remove duplicates, handle missing values and normalise units — poor-quality data undermines any analysis.</li>
-                    <li><strong>Exploratory data analysis (EDA):</strong> visualise distributions, correlations and outliers to form hypotheses and choose models.</li>
-                    <li><strong>Modeling:</strong> apply statistical or machine learning models (probabilistic models, supervised classifiers, clustering, or anomaly detectors) with proper cross-validation.</li>
-                    <li><strong>Evaluation:</strong> use appropriate metrics (ROC/AUC, precision@k, false positive rate) and compute uncertainty (confidence intervals, bootstrap) to assess reliability.</li>
-                    <li><strong>Deployment & monitoring:</strong> monitor model performance for concept drift and retrain when data distributions change.</li>
-                </ol>
-
-                <h3 style="color:var(--accent-color); margin-top:0.8rem;">Limitations and caveats</h3>
-                <p>
-                    While statistics is powerful, there are important caveats:
-                </p>
-                <ul>
-                    <li><strong>Data quality:</strong> biased, incomplete or poisoned data can lead to misleading conclusions and vulnerabilities to adversarial manipulation.</li>
-                    <li><strong>Concept drift:</strong> attackers adapt; models trained on historical data can become obsolete if behaviour changes over time.</li>
-                    <li><strong>Uncertainty:</strong> statistical conclusions are probabilistic — rare events may be hard to detect and estimates come with uncertainty that must be communicated.</li>
-                    <li><strong>False positives vs false negatives:</strong> in security these have asymmetric costs; tuning and cost-sensitive evaluation are essential.</li>
-                </ul>
-
-                <h3 style="color:var(--accent-color); margin-top:0.8rem;">Short practical example</h3>
-                <p>
-                    Suppose daily failed login counts follow a baseline distribution. A statistically significant spike relative to the baseline (e.g. using z-scores or a Poisson test) can trigger an investigation. Combining that signal with IP reputation and geolocation (feature enrichment) reduces false alarms.
-                </p>
-
-                <h3 style="color:var(--accent-color); margin-top:0.8rem;">Conclusion</h3>
-                <p>
-                    Statistics is essential to cybersecurity because it converts observational data into measurable evidence, supports principled decision-making under uncertainty, and underpins modern detection and risk-management systems.
-                    Applied responsibly — with attention to data quality, evaluation metrics and model maintenance — statistical methods significantly improve an organisation's ability to detect, prioritise and respond to threats.
-                </p>
             </section>
 
             <a class="back-link" href="index.html">&larr; Back to home</a>
