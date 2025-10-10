@@ -106,14 +106,15 @@ INSERT INTO LoginAttempts (UserID, LoginHour, Success) VALUES
             <h3>Compute distribution from LoginAttempts</h3>
             <p>Select one or more variables to group by and compute the count (frequency).</p>
             <form id="dist-form">
-                <label><input type="checkbox" name="vars" value="UserID" checked> UserID</label>
-                <label style="margin-left:12px;"><input type="checkbox" name="vars" value="LoginHour" checked> LoginHour</label>
+                <label><input type="checkbox" name="vars" value="UserID"> UserID</label>
+                <label style="margin-left:12px;"><input type="checkbox" name="vars" value="LoginHour"> LoginHour</label>
                 <label style="margin-left:12px;"><input type="checkbox" name="vars" value="Success" checked> Success</label>
                 <button type="submit" style="margin-left:12px;">Compute</button>
             </form>
 
             <h4 style="margin-top:0.8rem;">SQL query</h4>
-            <pre id="sql-query" style="white-space:pre-wrap;background:rgba(0,0,0,0.04);padding:0.5rem;border-radius:6px;color:#000;"></pre>
+            <pre id="sql-query" style="white-space:pre-wrap;background:#1e1e1e;padding:10px;border-radius:6px;color:#dcdcdc;font-family: 'Courier New', monospace;margin:15px 0;overflow:auto;">
+            </pre>
 
             <h4>Result</h4>
             <div id="dist-table-wrap"></div>
@@ -128,7 +129,7 @@ INSERT INTO LoginAttempts (UserID, LoginHour, Success) VALUES
         <label for="literature-select">Select text:</label>
         <select id="literature-select">
             <option value="alice">Alice's Adventures in Wonderland — opening (English)</option>
-            <option value="divina">La Divina Commedia — Inferno, canto I (Italian)</option>
+            <option value="divina" selected>La Divina Commedia — Inferno, canto I (Italian)</option>
             <option value="promessi">I Promessi Sposi — opening (Italian)</option>
         </select>
         <button id="load-lit">Load text</button>
@@ -145,13 +146,20 @@ INSERT INTO LoginAttempts (UserID, LoginHour, Success) VALUES
         <div id="literature-output">
             <div id="literature-chart" style="margin-top:0.5rem;"></div>
         </div>
-        <!-- Caesar cipher UI -->
-        <h3>Caesar cipher</h3>
+    <!-- Caesar cipher UI -->
+    <h3>Caesar cipher</h3>
+    <p>Here we apply a Caesar cipher to the loaded text: the <em>Encrypt</em> button shifts every letter by the selected number of positions (shift); the <em>Auto-decode</em> button attempts to recover the original text when the shift is unknown by using frequency analysis — comparing the ciphertext's letter distribution with the expected distribution for the chosen language (Italian/English).</p>
         <div style="display:flex;gap:8px;align-items:center;margin-top:0.4rem;">
             <label for="caesar-shift">Shift (0-25):</label>
             <input id="caesar-shift" type="number" min="0" max="25" value="3" style="width:80px;padding:4px;">
             <button id="encrypt-btn">Encrypt (apply Caesar)</button>
-            <label for="lang-select" style="margin-left:12px;">Language for decoding:</label>
+        </div>
+
+        <p style="margin-top:0.6rem;">Encrypted text:</p>
+        <pre id="encrypted-output" style="white-space:pre-wrap;background:rgba(0,0,0,0.18);padding:0.6rem;border-radius:6px;color:#fff;min-height:2.2rem;"></pre>
+
+        <div style="margin-top:0.5rem;display:flex;gap:8px;align-items:center;">
+            <label for="lang-select">Language for decoding:</label>
             <select id="lang-select">
                 <option value="italian">Italian</option>
                 <option value="english">English</option>
@@ -159,11 +167,11 @@ INSERT INTO LoginAttempts (UserID, LoginHour, Success) VALUES
             <button id="auto-decode-btn">Auto-decode</button>
         </div>
 
-        <p style="margin-top:0.6rem;">Encrypted text:</p>
-        <pre id="encrypted-output" style="white-space:pre-wrap;background:rgba(0,0,0,0.18);padding:0.6rem;border-radius:6px;color:#fff;min-height:2.2rem;"></pre>
-
         <p style="margin-top:0.4rem;">Decoded (best guess):</p>
         <pre id="decrypted-output" style="white-space:pre-wrap;background:rgba(0,0,0,0.12);padding:0.6rem;border-radius:6px;color:#fff;min-height:2.2rem;"></pre>
+
+    <h4 style="margin-top:0.6rem;">Reference distribution for selected language</h4>
+    <div id="language-chart" style="margin-top:0.5rem;display:none;"></div>
 
 
 
@@ -191,7 +199,7 @@ INSERT INTO LoginAttempts (UserID, LoginHour, Success) VALUES
             return counts;
         }
 
-        function renderBarChart(counts, containerId) {
+        function renderBarChart(counts, containerId, options = {}) {
             const container = document.getElementById(containerId);
             if (!container) return;
             container.innerHTML = '';
@@ -201,6 +209,11 @@ INSERT INTO LoginAttempts (UserID, LoginHour, Success) VALUES
             wrap.style.display = 'flex';
             wrap.style.flexDirection = 'column';
             wrap.style.gap = '6px';
+
+            // if showPercent is requested, compute total for percentage calculation
+            const showPercent = options.showPercent === true;
+            let total = 0;
+            if (showPercent) total = entries.reduce((s, e) => s + Number(e[1] || 0), 0) || 1;
 
             entries.forEach(([letter, value]) => {
                 const row = document.createElement('div');
@@ -223,7 +236,12 @@ INSERT INTO LoginAttempts (UserID, LoginHour, Success) VALUES
                 bar.style.borderRadius = '4px';
                 barWrap.appendChild(bar);
                 const val = document.createElement('div');
-                val.textContent = value;
+                if (showPercent) {
+                    const pct = (Number(value) / total) * 100;
+                    val.textContent = `${pct.toFixed(1)}%`;
+                } else {
+                    val.textContent = value;
+                }
                 val.style.width = '48px';
                 val.style.textAlign = 'right';
                 row.appendChild(label);
@@ -329,7 +347,24 @@ INSERT INTO LoginAttempts (UserID, LoginHour, Success) VALUES
             const guessedShift = (26 - best.shift) % 26; // convert to decrypt shift
             const decrypted = caesarEncrypt(cipher, guessedShift);
             document.getElementById('decrypted-output').textContent = `Guessed shift: ${guessedShift}\n\n` + decrypted;
+            // show reference chart for the language used
+            renderLanguageChart(lang);
         });
+
+        // render language reference chart
+        function renderLanguageChart(lang) {
+            const freq = REF_FREQ[lang] || REF_FREQ['italian'];
+            // convert normalized frequencies to percentages for display
+            const counts = {};
+            Object.keys(freq).forEach(k => counts[k] = freq[k] * 100);
+            renderBarChart(counts, 'language-chart', { showPercent: true });
+            const el = document.getElementById('language-chart');
+            if (el) el.style.display = '';
+        }
+
+        // initial render and on language change
+        document.getElementById('lang-select').addEventListener('change', (e) => renderLanguageChart(e.target.value));
+
 
         // ------------------ Interactive distribution for LoginAttempts ------------------
         function readLoginAttemptsTable() {
@@ -439,8 +474,23 @@ INSERT INTO LoginAttempts (UserID, LoginHour, Success) VALUES
 
         // run default on load (compute with defaults checked)
         window.addEventListener('load', () => {
+            // compute distribution for LoginAttempts (dist-form)
             const evt = new Event('submit');
             document.getElementById('dist-form').dispatchEvent(evt);
+            // set Divina as default loaded text and render letter chart
+            document.getElementById('lit-text').value = LITERATURE['divina'];
+            document.getElementById('compute-lit').click();
+            // simulate Encrypt then Auto-decode so the page appears already processed
+            // small timeout to ensure compute-lit finished updating textarea/chart
+            setTimeout(() => {
+                const encBtn = document.getElementById('encrypt-btn');
+                if (encBtn) encBtn.click();
+                // another short timeout to ensure encrypted text populated before auto-decode
+                setTimeout(() => {
+                    const autoBtn = document.getElementById('auto-decode-btn');
+                    if (autoBtn) autoBtn.click();
+                }, 120);
+            }, 120);
         });
     </script>
 </body>
