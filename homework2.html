@@ -101,84 +101,347 @@ INSERT INTO LoginAttempts (UserID, LoginHour, Success) VALUES
             <tr><td>U01</td><td>11</td><td>0</td></tr>
         </table>
 
-        <h2>Computing univariate distributions (k ≤ 3)</h2>
+        <!-- Interactive distribution selector for LoginAttempts -->
+        <section id="interactive-dist" style="margin-top:1rem;padding:0.75rem;border:1px solid rgba(0,0,0,0.06);border-radius:6px;">
+            <h3>Compute distribution from LoginAttempts</h3>
+            <p>Select one or more variables to group by and compute the count (frequency).</p>
+            <form id="dist-form">
+                <label><input type="checkbox" name="vars" value="UserID" checked> UserID</label>
+                <label style="margin-left:12px;"><input type="checkbox" name="vars" value="LoginHour" checked> LoginHour</label>
+                <label style="margin-left:12px;"><input type="checkbox" name="vars" value="Success" checked> Success</label>
+                <button type="submit" style="margin-left:12px;">Compute</button>
+            </form>
 
-        <h3>1. Distribution of Success</h3>
-        <code>
-SELECT Success, COUNT(*) AS Frequency
-FROM LoginAttempts
-GROUP BY Success;
-        </code>
+            <h4 style="margin-top:0.8rem;">SQL query</h4>
+            <pre id="sql-query" style="white-space:pre-wrap;background:rgba(0,0,0,0.04);padding:0.5rem;border-radius:6px;color:#000;"></pre>
 
-        <table>
-            <tr><th>Success</th><th>Frequency</th></tr>
-            <tr><td>1 (Success)</td><td>5</td></tr>
-            <tr><td>0 (Failure)</td><td>3</td></tr>
-        </table>
+            <h4>Result</h4>
+            <div id="dist-table-wrap"></div>
+        </section>
 
-        <h3>2. Distribution of LoginHour</h3>
-        <code>
-SELECT LoginHour, COUNT(*) AS Frequency
-FROM LoginAttempts
-GROUP BY LoginHour;
-        </code>
+        
 
-        <table>
-            <tr><th>LoginHour</th><th>Frequency</th></tr>
-            <tr><td>8</td><td>2</td></tr>
-            <tr><td>9</td><td>2</td></tr>
-            <tr><td>10</td><td>2</td></tr>
-            <tr><td>11</td><td>2</td></tr>
-        </table>
 
-        <h3>3. Distribution of UserID</h3>
-        <code>
-SELECT UserID, COUNT(*) AS Frequency
-FROM LoginAttempts
-GROUP BY UserID;
-        </code>
+        <h2>Letter distribution from literature</h2>
+        <p>Choose a public-domain piece of literature below, load the text and compute the distribution of letters (A–Z). The page will show counts and a simple bar chart.</p>
 
-        <table>
-            <tr><th>UserID</th><th>Frequency</th></tr>
-            <tr><td>U01</td><td>3</td></tr>
-            <tr><td>U02</td><td>2</td></tr>
-            <tr><td>U03</td><td>2</td></tr>
-            <tr><td>U04</td><td>1</td></tr>
-        </table>
-
-        <h2>Computing a bivariate distribution</h2>
-        <p>
-            A <strong>bivariate distribution</strong> shows how two variables vary together.  
-            For instance, the joint distribution of <code>LoginHour</code> and <code>Success</code>:
-        </p>
-
-        <code>
-SELECT LoginHour, Success, COUNT(*) AS Frequency
-FROM LoginAttempts
-GROUP BY LoginHour, Success;
-        </code>
-
-        <table>
-            <tr><th>LoginHour</th><th>Success</th><th>Frequency</th></tr>
-            <tr><td>8</td><td>1</td><td>2</td></tr>
-            <tr><td>9</td><td>0</td><td>1</td></tr>
-            <tr><td>9</td><td>1</td><td>1</td></tr>
-            <tr><td>10</td><td>0</td><td>1</td></tr>
-            <tr><td>10</td><td>1</td><td>1</td></tr>
-            <tr><td>11</td><td>0</td><td>1</td></tr>
-            <tr><td>11</td><td>1</td><td>1</td></tr>
-        </table>
+        <label for="literature-select">Select text:</label>
+        <select id="literature-select">
+            <option value="alice">Alice's Adventures in Wonderland — opening (English)</option>
+            <option value="divina">La Divina Commedia — Inferno, canto I (Italian)</option>
+            <option value="promessi">I Promessi Sposi — opening (Italian)</option>
+        </select>
+        <button id="load-lit">Load text</button>
 
         <p>
-            From this table, we can observe how successful and failed login attempts are distributed 
-            across different hours. This type of analysis is fundamental for identifying unusual patterns, 
-            such as a spike in failed logins at specific times of day, which might indicate a brute-force attack attempt.
+            <label for="lit-text">Text (you can edit):</label>
         </p>
+    <textarea id="lit-text" rows="8" style="width:100%;background:rgba(0,0,0,0.2);padding:0.5rem;border-radius:6px;color:#fff;"></textarea>
+        <div style="margin-top:0.5rem;">
+            <button id="compute-lit">Compute letter distribution</button>
+        </div>
+
+        <h4>Result</h4>
+        <div id="literature-output">
+            <div id="literature-chart" style="margin-top:0.5rem;"></div>
+        </div>
+        <!-- Caesar cipher UI -->
+        <h3>Caesar cipher</h3>
+        <div style="display:flex;gap:8px;align-items:center;margin-top:0.4rem;">
+            <label for="caesar-shift">Shift (0-25):</label>
+            <input id="caesar-shift" type="number" min="0" max="25" value="3" style="width:80px;padding:4px;">
+            <button id="encrypt-btn">Encrypt (apply Caesar)</button>
+            <label for="lang-select" style="margin-left:12px;">Language for decoding:</label>
+            <select id="lang-select">
+                <option value="italian">Italian</option>
+                <option value="english">English</option>
+            </select>
+            <button id="auto-decode-btn">Auto-decode</button>
+        </div>
+
+        <p style="margin-top:0.6rem;">Encrypted text:</p>
+        <pre id="encrypted-output" style="white-space:pre-wrap;background:rgba(0,0,0,0.18);padding:0.6rem;border-radius:6px;color:#fff;min-height:2.2rem;"></pre>
+
+        <p style="margin-top:0.4rem;">Decoded (best guess):</p>
+        <pre id="decrypted-output" style="white-space:pre-wrap;background:rgba(0,0,0,0.12);padding:0.6rem;border-radius:6px;color:#fff;min-height:2.2rem;"></pre>
+
+
 
         <p><a href="index.html">← Back to Home</a></p>
     </main>
     <footer>
         &copy; 2025 Alessandro Polidori
     </footer>
+    <script>
+        // Small excerpts for public-domain works
+        const LITERATURE = {
+            alice: `Alice was beginning to get very tired of sitting by her sister on the bank, and of having nothing to do: once or twice she had peeped into the book her sister was reading, but it had no pictures or conversations in it, \n"and what is the use of a book," thought Alice "without pictures or conversation?"`,
+            divina: `Nel mezzo del cammin di nostra vita mi ritrovai per una selva oscura, che la diritta via era smarrita. Ahi quanto a dir qual era e cosa dura esta selva selvaggia e aspra e forte che nel pensier rinova la paura!`,
+            promessi: `Quel ramo del lago di Como, che volge a mezzogiorno, tra due catene non interrotte di monti, tutto a seni e a golfi, a seconda dello sporgere e del rientrare di quelli, vien quasi a formare un avvolto; questo tratto, ch'io dico, comincia presso la citt\u00E0 di Lecco e volge a oriente.`
+        };
+
+        function computeLetterCounts(text) {
+            const A = 'A'.charCodeAt(0);
+            const counts = {};
+            for (let i = 0; i < 26; i++) counts[String.fromCharCode(A + i)] = 0;
+            for (const ch of (text || '').toUpperCase()) {
+                const code = ch.charCodeAt(0);
+                if (code >= A && code < A + 26) counts[String.fromCharCode(code)]++;
+            }
+            return counts;
+        }
+
+        function renderBarChart(counts, containerId) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            container.innerHTML = '';
+            const entries = Object.entries(counts);
+            const max = Math.max(...entries.map(e => e[1]), 1);
+            const wrap = document.createElement('div');
+            wrap.style.display = 'flex';
+            wrap.style.flexDirection = 'column';
+            wrap.style.gap = '6px';
+
+            entries.forEach(([letter, value]) => {
+                const row = document.createElement('div');
+                row.style.display = 'flex';
+                row.style.alignItems = 'center';
+                const label = document.createElement('div');
+                label.textContent = letter;
+                label.style.width = '28px';
+                label.style.color = '#111';
+                label.style.fontWeight = '600';
+                const barWrap = document.createElement('div');
+                barWrap.style.flex = '1';
+                barWrap.style.background = 'rgba(0,0,0,0.05)';
+                barWrap.style.borderRadius = '4px';
+                barWrap.style.margin = '0 8px';
+                const bar = document.createElement('div');
+                bar.style.height = '18px';
+                bar.style.width = `${(value / max) * 100}%`;
+                bar.style.background = '#800020';
+                bar.style.borderRadius = '4px';
+                barWrap.appendChild(bar);
+                const val = document.createElement('div');
+                val.textContent = value;
+                val.style.width = '48px';
+                val.style.textAlign = 'right';
+                row.appendChild(label);
+                row.appendChild(barWrap);
+                row.appendChild(val);
+                wrap.appendChild(row);
+            });
+
+            container.appendChild(wrap);
+        }
+
+        document.getElementById('load-lit').addEventListener('click', () => {
+            const key = document.getElementById('literature-select').value;
+            document.getElementById('lit-text').value = LITERATURE[key] || '';
+        });
+
+        document.getElementById('compute-lit').addEventListener('click', () => {
+            const text = document.getElementById('lit-text').value || '';
+            const counts = computeLetterCounts(text);
+            renderBarChart(counts, 'literature-chart');
+        });
+
+        // ------------------ Caesar cipher & automatic decoding ------------------
+        function caesarShiftChar(ch, shift) {
+            const A = 'A'.charCodeAt(0);
+            const a = 'a'.charCodeAt(0);
+            const code = ch.charCodeAt(0);
+            if (code >= A && code < A + 26) {
+                return String.fromCharCode(((code - A + shift) % 26 + 26) % 26 + A);
+            } else if (code >= a && code < a + 26) {
+                return String.fromCharCode(((code - a + shift) % 26 + 26) % 26 + a);
+            }
+            return ch;
+        }
+
+        function caesarEncrypt(text, shift) {
+            return Array.from(text).map(ch => caesarShiftChar(ch, shift)).join('');
+        }
+
+        function normalizeFreqs(freqs) {
+            const total = Object.values(freqs).reduce((a,b) => a + b, 0) || 1;
+            const out = {};
+            Object.keys(freqs).forEach(k => out[k] = freqs[k] / total);
+            return out;
+        }
+
+        function rotateFreqs(freqs, shift) {
+            const A = 'A'.charCodeAt(0);
+            const out = {};
+            for (let i = 0; i < 26; i++) out[String.fromCharCode(A + i)] = 0;
+            Object.keys(freqs).forEach(k => {
+                const idx = k.charCodeAt(0) - A;
+                const newIdx = (idx + shift + 26) % 26;
+                out[String.fromCharCode(A + newIdx)] = freqs[k];
+            });
+            return out;
+        }
+
+        function chiSquareDistance(obs, exp) {
+            const eps = 1e-9;
+            let sum = 0;
+            Object.keys(exp).forEach(k => {
+                const e = exp[k] || 0;
+                const o = obs[k] || 0;
+                sum += ((o - e) * (o - e)) / (e + eps);
+            });
+            return sum;
+        }
+
+        // Language reference frequencies (percentages normalized later)
+        const REF_FREQ = {
+            italian: { A:11.7,B:0.9,C:4.5,D:3.7,E:11.7,F:1.1,G:1.6,H:0.6,I:10.1,J:0.01,K:0.01,L:6.5,M:2.5,N:6.8,O:9.8,P:3,Q:0.5,R:6.3,S:4.9,T:5.6,U:3,V:2,W:0.03,X:0.01,Y:0.02,Z:1.1 },
+            english: { A:8.17,B:1.49,C:2.78,D:4.25,E:12.7,F:2.23,G:2.02,H:6.09,I:6.97,J:0.15,K:0.77,L:4.03,M:2.41,N:6.75,O:7.51,P:1.93,Q:0.1,R:5.99,S:6.33,T:9.06,U:2.76,V:0.98,W:2.36,X:0.15,Y:1.97,Z:0.07 }
+        };
+
+        // normalize reference
+        Object.keys(REF_FREQ).forEach(lang => REF_FREQ[lang] = normalizeFreqs(REF_FREQ[lang]));
+
+        document.getElementById('encrypt-btn').addEventListener('click', () => {
+            const shift = Number(document.getElementById('caesar-shift').value) || 0;
+            const text = document.getElementById('lit-text').value || '';
+            const encrypted = caesarEncrypt(text, shift);
+            document.getElementById('encrypted-output').textContent = encrypted;
+        });
+
+        document.getElementById('auto-decode-btn').addEventListener('click', () => {
+            // use encrypted-output if present, otherwise current textarea
+            let cipher = document.getElementById('encrypted-output').textContent || document.getElementById('lit-text').value || '';
+            if (!cipher) return;
+            // observed frequencies from cipher
+            const obsCounts = computeLetterCounts(cipher);
+            const obsFreq = normalizeFreqs(obsCounts);
+            const lang = document.getElementById('lang-select').value || 'italian';
+            const ref = REF_FREQ[lang];
+            let best = {shift:0,score:Infinity};
+            for (let s = 0; s < 26; s++) {
+                // rotate observed by -s to align with reference (equivalent)
+                const rotated = rotateFreqs(obsFreq, -s);
+                const score = chiSquareDistance(rotated, ref);
+                if (score < best.score) best = {shift: s, score};
+            }
+            // best.shift is the shift that when applied to ciphertext (i.e., shifting letters by -best.shift) returns plaintext.
+            const guessedShift = (26 - best.shift) % 26; // convert to decrypt shift
+            const decrypted = caesarEncrypt(cipher, guessedShift);
+            document.getElementById('decrypted-output').textContent = `Guessed shift: ${guessedShift}\n\n` + decrypted;
+        });
+
+        // ------------------ Interactive distribution for LoginAttempts ------------------
+        function readLoginAttemptsTable() {
+            // choose the first table in the main area (the sample dataset)
+            const table = document.querySelector('main table');
+            if (!table) return [];
+            // find header cells: first tr that contains th
+            let headerCells = [];
+            const allTrs = Array.from(table.querySelectorAll('tr'));
+            for (const tr of allTrs) {
+                const ths = Array.from(tr.querySelectorAll('th'));
+                if (ths.length) { headerCells = ths.map(h => h.textContent.trim()); break; }
+            }
+            if (!headerCells.length) {
+                // fallback to default headers
+                headerCells = ['UserID','LoginHour','Success'];
+            }
+            // data rows: only tr elements that contain td cells
+            const dataTrs = allTrs.filter(tr => tr.querySelectorAll('td').length > 0);
+            return dataTrs.map(r => {
+                const cells = Array.from(r.querySelectorAll('td'));
+                const obj = {};
+                cells.forEach((c, i) => {
+                    const key = headerCells[i] || `col${i}`;
+                    let val = c.textContent.trim();
+                    if (val !== '' && !isNaN(val)) val = Number(val);
+                    obj[key] = val;
+                });
+                return obj;
+            });
+        }
+
+        function groupCounts(data, groupKeys) {
+            const map = new Map();
+            data.forEach(row => {
+                const keyObj = {};
+                groupKeys.forEach(k => keyObj[k] = row[k]);
+                const key = JSON.stringify(keyObj);
+                map.set(key, (map.get(key) || 0) + 1);
+            });
+            const result = [];
+            for (const [k,v] of map.entries()) {
+                const obj = JSON.parse(k);
+                obj['Frequency'] = v;
+                result.push(obj);
+            }
+            return result;
+        }
+
+        function generateSQL(groupKeys) {
+            if (!groupKeys.length) return '-- Please select at least one variable to group by.';
+            const cols = groupKeys.map(k => `"${k}"`).join(', ');
+            return `SELECT ${cols}, COUNT(*) AS Frequency\nFROM LoginAttempts\nGROUP BY ${cols};`;
+        }
+
+        function renderDistResult(rows, containerId='dist-table-wrap', groupKeys=[]) {
+            const wrap = document.getElementById(containerId);
+            wrap.innerHTML = '';
+            if (!rows.length) { wrap.textContent = 'No results'; return; }
+            const table = document.createElement('table');
+            // ensure same visual style as static tables
+            table.style.width = '100%';
+            table.style.borderCollapse = 'collapse';
+            table.style.marginTop = '0.5rem';
+            const thead = document.createElement('thead');
+            const headerRow = document.createElement('tr');
+            // Build headers using selected groupKeys in order, then Frequency
+            const headers = (groupKeys && groupKeys.length) ? groupKeys.concat(['Frequency']) : Object.keys(rows[0]);
+            headers.forEach(k => {
+                const th = document.createElement('th'); th.textContent = k;
+                th.style.border = '1px solid #777';
+                th.style.padding = '8px 12px';
+                th.style.backgroundColor = '#800020';
+                th.style.color = '#fff';
+                th.style.textAlign = 'center';
+                headerRow.appendChild(th);
+            });
+            thead.appendChild(headerRow);
+            table.appendChild(thead);
+            const tbody = document.createElement('tbody');
+            rows.forEach(r => {
+                const tr = document.createElement('tr');
+                // ensure values follow the headers order
+                const rowValues = headers.map(h => r[h] !== undefined ? r[h] : '');
+                rowValues.forEach(v => { const td = document.createElement('td'); td.textContent = v; td.style.border = '1px solid #777'; td.style.padding = '8px 12px'; td.style.textAlign = 'center'; tr.appendChild(td); });
+                tbody.appendChild(tr);
+            });
+            table.appendChild(tbody);
+            wrap.appendChild(table);
+        }
+
+        document.getElementById('dist-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const form = e.target;
+            const formData = new FormData(form);
+            const groupKeys = formData.getAll('vars');
+            const sql = generateSQL(groupKeys);
+            document.getElementById('sql-query').textContent = sql;
+            if (!groupKeys.length) {
+                document.getElementById('dist-table-wrap').textContent = 'Please select at least one variable.';
+                return;
+            }
+            const data = readLoginAttemptsTable();
+            const result = groupCounts(data, groupKeys);
+            renderDistResult(result, 'dist-table-wrap', groupKeys);
+        });
+
+        // run default on load (compute with defaults checked)
+        window.addEventListener('load', () => {
+            const evt = new Event('submit');
+            document.getElementById('dist-form').dispatchEvent(evt);
+        });
+    </script>
 </body>
 </html>
