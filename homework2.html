@@ -175,24 +175,24 @@ INSERT INTO LoginAttempts (UserID, LoginHour, Success) VALUES
 
 
         <section id="decrypt-explanation" style="margin-top:1rem;padding:0.75rem;border-left:4px solid #800020;background:rgba(0,0,0,0.03);border-radius:6px;">
-            <h3>Spiegazione dell'algoritmo di decriptazione automatica</h3>
+            <h3>Automatic decryption algorithm explanation</h3>
             <p style="margin-top:0.2rem;">
-                L'algoritmo usato per <strong>auto-decodare</strong> un testo cifrato con il cifrario di Cesare
-                si basa sull'analisi della distribuzione delle lettere (A–Z). Ecco i passaggi principali:
+                The algorithm used to <strong>auto-decode</strong> text encrypted with a Caesar cipher is based on
+                letter-frequency analysis (A–Z). The main steps are:
             </p>
             <ol>
-                <li>Calcolare la frequenza osservata delle lettere nel testo cifrato (ignorando caratteri non alfabetici).</li>
-                <li>Per ogni possibile shift (0–25) ruotare la distribuzione osservata e confrontarla con la
-                    distribuzione di riferimento della lingua selezionata (italiano o inglese).</li>
-                <li>Misurare la distanza tra la distribuzione ruotata e la distribuzione di riferimento (ad es. con
-                    la somma dei quadrati o una statistica tipo chi-quadrato).</li>
-                <li>Scegliere lo shift che minimizza la distanza: applicando l'inverso di quello shift si ottiene
-                    il testo decifrato più probabile.</li>
+                <li>Compute the observed frequency of letters in the ciphertext (ignoring non-alphabetic characters).</li>
+                <li>For each possible shift (0–25), rotate the observed distribution by that shift and compare it to the
+                    reference distribution for the selected language (Italian or English).</li>
+                <li>Measure the distance between the rotated distribution and the reference distribution (for example using
+                    sum-of-squares or a chi-square-like statistic).</li>
+                <li>Select the shift that minimizes the distance — applying the inverse of that shift yields the most likely
+                    plaintext candidate.</li>
             </ol>
             <p style="margin-top:0.2rem;">
-                Nota: il metodo funziona meglio con testi sufficientemente lunghi (altrimenti le frequenze
-                osservate sono troppo rumorose) e assume una cifratura di tipo Cesare puro (rotazione uniforme
-                delle lettere). Non corregge errori di punteggiatura o parole mancanti.
+                Note: this method works best with sufficiently long texts (short texts yield noisy frequency estimates)
+                and assumes a simple Caesar encryption (uniform rotation of letters). It does not fix punctuation or
+                recover missing words.
             </p>
         </section>
 
