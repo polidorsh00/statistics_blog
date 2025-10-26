@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Homework 4 - Simulation of the Law of Large Numbers (LLN)</title>
+<link rel="stylesheet" href="css/style.css">
+<style>
+  /* page-local tweaks to match the site */
+  main { max-width:1000px; margin:36px auto; padding:18px; }
+  .controls { display:flex; gap:12px; align-items:center; flex-wrap:wrap; margin-bottom:12px; }
+  label { color: #ffd6de; }
+  .sim-grid { display:flex; gap:18px; align-items:flex-start; }
+  .plot-wrap { flex:1 1 60%; background:rgba(0,0,0,0.04); padding:12px; border-radius:8px; }
+  .side { width:300px; min-width:260px; background:rgba(0,0,0,0.03); padding:12px; border-radius:8px; }
+  canvas { background: #ffffff; width:100%; height:320px; display:block; border-radius:6px; }
+  .small { font-size:0.9rem; color:#ddd; }
+  .hist-canvas { height:320px; width:100%; background:#fff; border-radius:6px; display:block; }
+  .muted { color:#ccc; font-size:0.9rem; }
+  button { background:#800020; color:#fff; border:none; padding:8px 12px; border-radius:6px; cursor:pointer; }
+  input[type=range] { width:160px; }
+  .note { margin-top:8px; color:#ddd; font-size:0.9rem; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Homework 4</h1>
+  <p>Simulation of the Law of Large Numbers (LLN) - Fair coin toss (p = 0.5)</p>
+</header>
+<main>
+  <div class="controls">
+    <label>Trajectories (m): <input id="m-input" type="number" value="200" min="1" max="2000" step="1" style="width:100px"></label>
+    <label>Trials per trajectory (n max): <input id="n-input" type="number" value="500" min="1" max="5000" step="1" style="width:120px"></label>
+    <label>Show up to n = <input id="show-n" type="range" min="1" max="500" value="200"></label>
+    <button id="sim-btn">Simulate</button>
+    <button id="animate-btn">Animate</button>
+    <button id="reset-btn">Reset</button>
+    <div class="muted">p (success) = 0.5 (fair coin)</div>
+  </div>
+
+  <div class="sim-grid">
+    <div class="plot-wrap">
+  <h3>Relative frequency trajectories f(n)</h3>
+  <canvas id="traj-canvas" width="800" height="320"></canvas>
+  <div class="note">Red line: p = 0.5. Trajectories show the empirical frequency of heads as a function of n.</div>
+    </div>
+
+    <aside class="side">
+  <h3>Histogram of f(n) distribution (right)</h3>
+      <canvas id="hist-canvas" class="hist-canvas" width="300" height="320"></canvas>
+  <div class="note">The histogram shows the distribution of final frequencies f(n_vis) across the m trajectories.</div>
+      <div style="margin-top:10px;"><strong>Statistics</strong>
+        <div id="stats" class="small">--</div>
+      </div>
+    </aside>
+  </div>
+
+  
+  <section style="margin-top:18px;padding:12px;border-left:4px solid #800020;background:rgba(0,0,0,0.03);border-radius:6px;">
+    <h3>Explanation: What this simulation shows</h3>
+    <p>This page demonstrates the Law of Large Numbers (LLN) using repeated simulations of a fair coin (probability of heads p = 0.5).</p>
+    <ul>
+      <li><strong>Left plot (trajectories):</strong> each line is one trajectory showing the empirical frequency f(n) = (#heads up to trial n) / n as n increases. With many trials, most trajectories tend to stay closer to the true probability p = 0.5.</li>
+      <li><strong>Red horizontal line:</strong> the true probability p = 0.5. As n grows the empirical frequency of each trajectory typically converges towards this line.</li>
+      <li><strong>Mean trajectory (blue):</strong> the average of f(n) across all m trajectories; it should remain close to p at all n.</li>
+      <li><strong>Right histogram:</strong> shows the distribution of the final empirical frequencies f(n_vis) across the m simulated trajectories (at the currently selected n). As n increases the histogram becomes more concentrated around p = 0.5.</li>
+    </ul>
+    <p><strong>Theoretical note:</strong> for independent Bernoulli(p) trials the variance of f(n) is Var(f(n)) = p(1-p)/n. For p = 0.5 this gives Var = 0.25 / n and standard deviation sigma = 0.5 / sqrt(n). The histogram concentration observed in the simulation is a direct consequence of this shrinking variance.</p>
+    <p><strong>How to use:</strong> increase the number of trials (<em>n</em>) to see trajectories concentrate and the histogram narrow; increase the number of trajectories (<em>m</em>) to get a smoother histogram and a more stable empirical mean.</p>
+    <p class="small">Tip: try the <em>Animate</em> button to step n from 1 to N and watch the convergence dynamically.</p>
+  </section>
+  <div style="max-width:1000px;margin:12px auto 0;display:flex;justify-content:flex-end;padding:0 18px;">
+    <a href="index.html" style="color:#ff99a8;font-weight:bold;text-decoration:none;">&#8592; Back to Home</a>
+  </div>
+</main>
+<footer>&copy; 2025 Alessandro Polidori</footer>
+
+<script>
+(function(){
+  // Utilities
+  function clearCanvas(c){ const ctx=c.getContext('2d'); ctx.clearRect(0,0,c.width,c.height); }
+  function drawLine(ctx,x1,y1,x2,y2,color='black',w=1){ ctx.strokeStyle=color; ctx.lineWidth=w; ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke(); }
+
+  const trajCanvas = document.getElementById('traj-canvas');
+  const trajCtx = trajCanvas.getContext('2d');
+  const histCanvas = document.getElementById('hist-canvas');
+  const histCtx = histCanvas.getContext('2d');
+
+  const mInput = document.getElementById('m-input');
+  const nInput = document.getElementById('n-input');
+  const showN = document.getElementById('show-n');
+  const simBtn = document.getElementById('sim-btn');
+  const animateBtn = document.getElementById('animate-btn');
+  const resetBtn = document.getElementById('reset-btn');
+  const statsDiv = document.getElementById('stats');
+
+  let trajectories = []; // array of arrays of cumulative frequencies
+  let m=Number(mInput.value), N=Number(nInput.value);
+  let animating=false, animTimer=null;
+
+  function simulate(){
+    m = Math.max(1, Math.min(2000, Number(mInput.value)||200));
+    N = Math.max(1, Math.min(5000, Number(nInput.value)||500));
+    showN.max = N;
+    if(Number(showN.value)>N) showN.value = N;
+    trajectories = [];
+    const p = 0.5; // fair coin
+    for(let i=0;i<m;i++){
+      const traj = new Float64Array(N);
+      let successes=0;
+      for(let n=1;n<=N;n++){
+        // Bernoulli trial
+        if(Math.random() < p) successes++;
+        traj[n-1] = successes / n;
+      }
+      trajectories.push(traj);
+    }
+    render();
+  }
+
+  function render(){
+    const showTo = Number(showN.value);
+    const w = trajCanvas.width, h = trajCanvas.height;
+    clearCanvas(trajCanvas);
+    // background
+    trajCtx.fillStyle = '#ffffff'; trajCtx.fillRect(0,0,w,h);
+    // margin
+    const L=40, R=12, T=12, B=30;
+    const plotW = w - L - R; const plotH = h - T - B;
+    // axes
+    trajCtx.strokeStyle='#333'; trajCtx.lineWidth=1;
+    drawLine(trajCtx,L,T,L,T+plotH); // y
+    drawLine(trajCtx,L,T+plotH,L+plotW,T+plotH); // x
+    // y labels 0..1
+    trajCtx.fillStyle='#000'; trajCtx.font='12px sans-serif';
+    for(let k=0;k<=4;k++){ const yVal = k/4; const y = T + (1 - yVal)*plotH; trajCtx.fillText(yVal.toFixed(2), 4, y+4); drawLine(trajCtx,L-4,y,L,y,'#ddd',1); }
+    // x labels
+    const xticks=5;
+    for(let k=0;k<=xticks;k++){ const xVal = Math.round(k*(showTo/xticks)); const x = L + (k/xticks)*plotW; trajCtx.fillText(xVal.toString(), x-6, T+plotH+16); drawLine(trajCtx,x,T+plotH,x,T+plotH+4,'#ddd',1); }
+
+    // draw trajectories (thin, semi-transparent)
+    trajCtx.lineWidth=1;
+    for(let i=0;i<trajectories.length;i++){
+      const traj = trajectories[i];
+      trajCtx.beginPath();
+      for(let n=0;n<showTo;n++){
+        const x = L + (n/showTo)*plotW;
+        const y = T + (1 - traj[n])*plotH;
+        if(n===0) trajCtx.moveTo(x,y); else trajCtx.lineTo(x,y);
+      }
+      trajCtx.strokeStyle = 'rgba(40,120,200,0.06)';
+      trajCtx.stroke();
+    }
+    // draw a few highlighted trajectories (to show variation)
+    const highlight = Math.min(6, trajectories.length);
+    for(let i=0;i<highlight;i++){
+      const traj = trajectories[i];
+      trajCtx.beginPath();
+      for(let n=0;n<showTo;n++){
+        const x = L + (n/showTo)*plotW;
+        const y = T + (1 - traj[n])*plotH;
+        if(n===0) trajCtx.moveTo(x,y); else trajCtx.lineTo(x,y);
+      }
+      trajCtx.strokeStyle='rgba(0,0,0,0.35)'; trajCtx.lineWidth=1.2; trajCtx.stroke();
+    }
+
+    // draw mean trajectory in thick blue
+    const meanTraj = new Float64Array(showTo);
+    for(let n=0;n<showTo;n++){ let s=0; for(let i=0;i<trajectories.length;i++) s += trajectories[i][n]; meanTraj[n] = s/trajectories.length; }
+    trajCtx.beginPath();
+    for(let n=0;n<showTo;n++){
+      const x = L + (n/showTo)*plotW;
+      const y = T + (1 - meanTraj[n])*plotH;
+      if(n===0) trajCtx.moveTo(x,y); else trajCtx.lineTo(x,y);
+    }
+    trajCtx.strokeStyle='rgba(20,100,160,0.95)'; trajCtx.lineWidth=2.2; trajCtx.stroke();
+
+    // draw p line (0.5)
+    const pY = T + (1 - 0.5)*plotH;
+    drawLine(trajCtx,L,pY,L+plotW,pY,'red',2);
+
+    // histogram of final frequencies at showTo
+    drawHistogram(showTo);
+
+    // compute stats
+    const finals = trajectories.map(t => t[showTo-1]);
+    const mean = finals.reduce((a,b)=>a+b,0)/finals.length;
+    const varr = finals.reduce((a,b)=>a + (b-mean)*(b-mean),0)/finals.length;
+    statsDiv.innerHTML = 'm=' + trajectories.length + ' | n=' + showTo + '<br>mean f(n) = ' + mean.toFixed(4) + '<br>var = ' + varr.toExponential(3);
+  }
+
+  function drawHistogram(showTo){
+    clearCanvas(histCanvas);
+    const ctx = histCtx; const w = histCanvas.width; const h = histCanvas.height;
+    // white background
+    ctx.fillStyle='#fff'; ctx.fillRect(0,0,w,h);
+    if(trajectories.length===0) return;
+    const finals = trajectories.map(t=>t[showTo-1]);
+    // bins
+    const bins = 25;
+    const counts = new Array(bins).fill(0);
+    for(const v of finals){ const idx = Math.min(bins-1, Math.floor(v * bins)); counts[idx]++; }
+    const maxc = Math.max(...counts);
+    // draw vertical bars (histogram oriented vertically, bars stacked upwards)
+    const pad = 30; const plotW = w - pad*2; const plotH = h - 40;
+    const barW = plotW / bins;
+    ctx.fillStyle='#4078c0';
+    for(let i=0;i<bins;i++){
+      const x = pad + i*barW;
+      const barH = (counts[i]/maxc) * plotH;
+      ctx.fillRect(x, h - 20 - barH, barW - 2, barH);
+    }
+    // x labels (showing frequency center)
+    ctx.fillStyle='#000'; ctx.font='11px sans-serif';
+    for(let i=0;i<=4;i++){ const t = i/4; const x = pad + (t*plotW); ctx.fillText(t.toFixed(2), x-10, h-2); }
+    // draw vertical indicator for p=0.5
+    const pPos = pad + (0.5 * plotW);
+    ctx.strokeStyle='red'; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(pPos, h-20); ctx.lineTo(pPos, h-20-plotH); ctx.stroke();
+  }
+
+  // UI handlers
+  simBtn.addEventListener('click', ()=>{ simulate(); });
+  showN.addEventListener('input', ()=>{ render(); });
+  nInput.addEventListener('change', ()=>{ showN.max = Number(nInput.value); if(Number(showN.value)>Number(nInput.value)) showN.value=nInput.value; });
+
+  // animation: step n from 1..N
+  animateBtn.addEventListener('click', ()=>{
+  if(animating){ animating=false; animateBtn.textContent='Animate'; if(animTimer) clearInterval(animTimer); return; }
+    if(trajectories.length===0) simulate();
+    animating=true; animateBtn.textContent='Stop';
+    let cur = 1; const maxN = Number(nInput.value);
+    showN.max = maxN;
+    showN.value = cur;
+    animTimer = setInterval(()=>{
+      showN.value = cur;
+      render();
+      cur++;
+  if(cur>maxN){ clearInterval(animTimer); animating=false; animateBtn.textContent='Animate'; }
+    }, 20);
+  });
+
+  resetBtn.addEventListener('click', ()=>{ trajectories=[]; clearCanvas(trajCanvas); clearCanvas(histCanvas); statsDiv.textContent='--'; });
+
+  // initial simulate
+  simulate();
+
+})();
+</script>
+</body>
+</html>

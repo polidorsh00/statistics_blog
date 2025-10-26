@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Homework 3 - RSA letter-by-letter & frequency analysis</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+      /* Small page-local overrides to match the site theme while keeping the page layout */
+      :root{--accent:#800020;--mono:"Courier New",monospace}
+      main{padding:18px}
+      .panel{padding:12px;border-radius:8px;background:rgba(255,255,255,0.03);margin:10px 0;border-left:4px solid var(--accent)}
+      .chart-box{flex:1 1 420px;background:rgba(255,255,255,0.02);padding:10px;border-radius:8px}
+      code, pre.codeblock{display:block;background:#1e1e1e;color:#dcdcdc;padding:10px;border-radius:6px;font-family:var(--mono);white-space:pre;overflow-x:auto;margin:12px 0}
+      pre.output{white-space:pre-wrap;background:rgba(0,0,0,0.06);padding:10px;border-radius:6px;font-family:var(--mono);min-height:2.2rem;color:#fff}
+      textarea{width:100%;min-height:120px;padding:10px;border-radius:6px;border:1px solid rgba(255,255,255,0.06);box-sizing:border-box;background:transparent;color:inherit}
+      button{background:var(--accent);color:#fff;border:none;padding:8px 12px;border-radius:6px;cursor:pointer;margin:6px 6px 6px 0}
+      table{width:100%;border-collapse:collapse;margin:0.75rem 0}
+      th,td{border:1px solid rgba(255,255,255,0.08);padding:8px 12px;text-align:center}
+      th{background:var(--accent);color:#fff}
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Homework 3</h1>
+        <p>RSA (letter-by-letter) encryption & frequency-analysis decryption — practical algorithm and demo</p>
+    </header>
+
+    <main>
+        <h2>Assignment</h2>
+        <p>
+            Repeat the same exercise as in Homework 2, but this time use <strong>RSA encryption applied letter by letter</strong> (with very small, manageable primes p and q). Try to decode the message by analyzing the language's letter distribution. Find a practical algorithm to recover plaintext by frequency analysis and small-instance factoring.
+        </p>
+
+        <section class="panel">
+            <h3>Goals (short)</h3>
+            <ol>
+                <li>Produce small RSA keys (p, q small primes) and encrypt text character-by-character (each char → codepoint → RSA ciphertext).</li>
+                <li>Provide two decoding strategies:
+                    <ul>
+                        <li>Use the private key (straightforward decrypt) — demonstration.</li>
+                        <li>Attempt to recover plaintext without the private key using either small-factor trial (factor n) or frequency-analysis heuristics comparing letter distributions to a language reference.</li>
+                    </ul>
+                </li>
+                <li>Explain and demonstrate a practical algorithm for frequency-guided decoding.</li>
+            </ol>
+        </section>
+
+        <h2>Interactive RSA / Frequency demo</h2>
+
+        <h3>Step 1 — Generate small RSA keys</h3>
+        <p>
+            For this educational demo we intentionally pick small primes so factoring is feasible. In realistic cryptography, primes must be very large — but here small primes allow experimentation and understanding.
+        </p>
+        <button id="genKeysBtn">Generate Keys</button>
+        <div id="keyInfo" class="panel" style="background:#eaf4f0;color:#062;padding:8px;font-family:var(--mono);"></div>
+
+        <h3>Step 2 — Enter plaintext and encrypt (letter-by-letter)</h3>
+        <label for="plaintext">Plaintext (letters, punctuation allowed):</label>
+        <textarea id="plaintext" placeholder="Type a short English message (e.g. 'HELLO RSA')">This is a short test message for Homework 3.</textarea>
+        <div style="margin-top:8px;">
+            <button id="encryptBtn">Encrypt (RSA letter-by-letter)</button>
+            <button id="showCipherBtn">Show Ciphertext (JSON)</button>
+        </div>
+        <pre id="cipherOut" class="output"></pre>
+
+        <h3>Step 3 — Decrypt</h3>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+            <button id="decryptPrivateBtn">Decrypt (using private key)</button>
+            <button id="attemptFactorBtn">Attempt to factor n → compute d → decrypt</button>
+            <label>Trial limit: <input type="number" id="factorLimit" value="5000" /></label>
+            <button id="freqAttackBtn">Frequency-guided guess (without factoring)</button>
+        </div>
+        <p><strong>Decrypted candidate (private / factored / freq-guess):</strong></p>
+        <pre id="decryptOut" class="output"></pre>
+
+        <h3>Analysis & Frequency charts</h3>
+        <div id="charts">
+            <div class="chart-box">
+                <h4>Ciphertext letter-frequency (observed)</h4>
+                <pre id="cipherFreq" class="codeblock" style="background:#fff; color:#000; white-space:pre-wrap;"></pre>
+            </div>
+            <div class="chart-box">
+                <h4>Decoded candidate letter-frequency</h4>
+                <pre id="plainFreq" class="codeblock" style="background:#fff; color:#000; white-space:pre-wrap;"></pre>
+            </div>
+        </div>
+
+        <section class="panel">
+            <h3>Algorithm explanation (practical)</h3>
+            <p>
+                The demo implements the following practical steps:
+            </p>
+            <ol>
+                <li><strong>Key generation</strong>: choose small primes p, q, compute n = p·q, φ(n) = (p−1)(q−1), pick e (commonly 65537 or smaller) and compute d = e⁻¹ mod φ(n).</li>
+                <li><strong>Encryption (letter-by-letter)</strong>: convert each character to its Unicode code point (0–65535 typically) and compute c ≡ m^e (mod n) for each m. Store ciphertext as an array of integers.</li>
+                <li><strong>Brute-force factor attempt</strong>: when n is small, trial division up to some limit will find p and q; then recompute d and decrypt normally. This is demonstrated with a configurable trial limit.</li>
+                <li><strong>Frequency-guided decoding (heuristic)</strong>: if factoring is not possible or intentionally omitted, produce candidate plaintexts by trying small possible mappings that map each ciphertext to likely plaintext letters — however here we take a more practical approach: if ciphertext blocks are small enough to correspond directly (after decryption with guessed private exponents) to printable ASCII code points, we test candidate decryptions and score them by comparing the letter-frequency distribution of the candidate to a reference distribution for English. The candidate with lowest MSE against reference is considered the best guess.</li>
+            </ol>
+            <p>
+                This frequency-guided approach is practical for short RSA exponents / tiny n where the number of candidate decryptions is manageable. For larger RSA, it is not practical — factoring or side-channel attacks would be required.
+            </p>
+        </section>
+
+        <p><a href="index.html">← Back to Home</a></p>
+    </main>
+
+    <footer>&copy; 2025 Alessandro Polidori</footer>
+
+    <!-- ===== JavaScript logic (RSA + frequency analysis) ===== -->
+    <script>
+    /* Utilities for BigInt modular arithmetic */
+    function modPow(base, exp, mod) {
+        base = BigInt(base) % BigInt(mod);
+        exp = BigInt(exp);
+        mod = BigInt(mod);
+        let res = 1n;
+        while (exp > 0n) {
+            if (exp & 1n) res = (res * base) % mod;
+            base = (base * base) % mod;
+            exp >>= 1n;
+        }
+        return res;
+    }
+    function egcd(a,b){
+        a = BigInt(a); b = BigInt(b);
+        if (b === 0n) return [a, 1n, 0n];
+        const [g,x1,y1] = egcd(b, a % b);
+        return [g, y1, x1 - (a / b) * y1];
+    }
+    function modInverse(a,m){
+        a = BigInt(a); m = BigInt(m);
+        const [g,x] = egcd(a,m);
+        if (g !== 1n) return null;
+        return (x % m + m) % m;
+    }
+
+    // Reference English letter frequency (percentage)
+    const ENGLISH_REF = {
+        a:8.167,b:1.492,c:2.782,d:4.253,e:12.702,f:2.228,g:2.015,h:6.094,i:6.966,
+        j:0.153,k:0.772,l:4.025,m:2.406,n:6.749,o:7.507,p:1.929,q:0.095,r:5.987,
+        s:6.327,t:9.056,u:2.758,v:0.978,w:2.360,x:0.150,y:1.974,z:0.074
+    };
+
+    // Simple small-primes pool for quick demo generation
+    const SMALL_PRIMES = [41,43,47,53,59,61,67,71,73,79,83,89,97,101,103,107,109,113];
+
+    let RSA = { p:null,q:null,n:null,e:null,d:null };
+    let lastCipher = null;
+
+    function randomSmallPrime(exclude=null){
+        let pool = SMALL_PRIMES.slice();
+        if (exclude !== null) pool = pool.filter(x => x !== exclude);
+        return pool[Math.floor(Math.random()*pool.length)];
+    }
+
+    document.getElementById('genKeysBtn').addEventListener('click', ()=>{
+        const p = BigInt(randomSmallPrime());
+        const q = BigInt(randomSmallPrime(Number(p)));
+        const n = p * q;
+        const phi = (p - 1n) * (q - 1n);
+        let e = 65537n;
+        if (phi % e === 0n) e = 17n; // fallback if unlucky
+        const d = modInverse(e, phi);
+        RSA = { p, q, n, e, d };
+        document.getElementById('keyInfo').textContent = `p=${p}, q=${q}, n=${n}, phi=${phi}, e=${e}, d=${d}`;
+        document.getElementById('cipherOut').textContent = '';
+        document.getElementById('decryptOut').textContent = '';
+        lastCipher = null;
+    });
+
+    function textToCodePoints(text){
+        // convert each character to its code point (we keep basic BMP)
+        const arr = [];
+        for (const ch of Array.from(text)) arr.push(ch.codePointAt(0));
+        return arr;
+    }
+    function codePointsToText(arr){
+        return arr.map(cp => String.fromCodePoint(cp)).join('');
+    }
+
+    document.getElementById('encryptBtn').addEventListener('click', ()=>{
+        if (!RSA.n) { alert('Please generate keys first.'); return; }
+        const text = document.getElementById('plaintext').value || '';
+        const cps = textToCodePoints(text);
+        // For each codepoint m, compute c = m^e mod n
+        const cipherNums = cps.map(m => modPow(BigInt(m), RSA.e, RSA.n).toString());
+        lastCipher = cipherNums;
+        document.getElementById('cipherOut').textContent = JSON.stringify(cipherNums);
+        updateCipherFreqDisplay(cipherNums);
+    });
+
+    document.getElementById('showCipherBtn').addEventListener('click', ()=>{
+        if (!lastCipher) {
+            const c = document.getElementById('cipherOut').textContent.trim();
+            if (c.startsWith('[')) {
+                try { lastCipher = JSON.parse(c); } catch(e){ lastCipher = null; }
+            }
+        }
+        if (!lastCipher) { alert('No ciphertext available. Encrypt first or paste a JSON array.'); return; }
+        document.getElementById('cipherOut').textContent = JSON.stringify(lastCipher, null, 2);
+        updateCipherFreqDisplay(lastCipher);
+    });
+
+    document.getElementById('decryptPrivateBtn').addEventListener('click', ()=>{
+        if (!RSA.d || !RSA.n) { alert('No private key available. Generate keys first.'); return; }
+        ensureLastCipher();
+        if (!lastCipher) return;
+        const nums = lastCipher.map(s => BigInt(s));
+        const dec = nums.map(c => Number(modPow(c, RSA.d, RSA.n)));
+        const text = codePointsToText(dec);
+        document.getElementById('decryptOut').textContent = `(private) Decrypted text:\n\n${text}`;
+        updatePlainFreqDisplay(text);
+    });
+
+    document.getElementById('attemptFactorBtn').addEventListener('click', ()=>{
+        ensureLastCipher();
+        if (!lastCipher) return;
+        if (!RSA.n) { alert('No n available. Generate keys first.'); return; }
+        const limit = Number(document.getElementById('factorLimit').value) || 5000;
+        const nval = Number(RSA.n.toString());
+        const factors = trialFactor(nval, limit);
+        if (!factors) {
+            document.getElementById('decryptOut').textContent = `Failed to factor n (trial up to ${limit}). Try increasing limit or regenerate with smaller primes.`;
+            return;
+        }
+        const {p,q} = factors;
+        const phi = BigInt((p-1)*(q-1));
+        const d = modInverse(RSA.e, phi);
+        if (!d) {
+            document.getElementById('decryptOut').textContent = `Found factors p=${p}, q=${q} but e is not invertible mod phi.`;
+            return;
+        }
+        // decrypt with computed d
+        const nums = lastCipher.map(s => BigInt(s));
+        const dec = nums.map(c => Number(modPow(c, d, RSA.n)));
+        const text = codePointsToText(dec);
+        document.getElementById('decryptOut').textContent = `FACTORED: p=${p}, q=${q}\nComputed d=${d}\n\nDecoded candidate:\n\n${text}`;
+        updatePlainFreqDisplay(text);
+    });
+
+    document.getElementById('freqAttackBtn').addEventListener('click', ()=>{
+        ensureLastCipher();
+        if (!lastCipher) return;
+        // Frequency-guided heuristic (practical approach):
+        // 1) For each unique ciphertext value c, compute the set of possible plaintext codepoints m
+        //    by trying small integers m in the ASCII printable range and check if m^e ≡ c (mod n).
+        // 2) If a mapping m->c is found for many c, reconstruct plaintext; otherwise produce candidates by picking the closest mapping.
+        // This works here because small n and small codepoints make collisions unlikely.
+        const n = RSA.n;
+        const e = RSA.e;
+        const cipherNums = lastCipher.map(s => BigInt(s));
+        // Build map: c -> possible m (in printable ASCII range 32..126 and basic letters)
+        const mapping = {};
+        for (const c of cipherNums) {
+            const cStr = c.toString();
+            if (!mapping[cStr]) mapping[cStr] = new Set();
+            // try plausible m values (space..tilde, plus newline and common letters)
+            for (let m=32; m<=126; m++) {
+                if (modPow(BigInt(m), e, n) === c) mapping[cStr].add(m);
+            }
+            // also try a-z/A-Z codepoints (if not found)
+            for (let m=97; m<=122; m++) {
+                if (modPow(BigInt(m), e, n) === c) mapping[cStr].add(m);
+            }
+            for (let m=65; m<=90; m++) {
+                if (modPow(BigInt(m), e, n) === c) mapping[cStr].add(m);
+            }
+        }
+        // Reconstruct plaintext by choosing for each ciphertext the most likely character:
+        // If mapping has 1 element → pick it; if multiple → score by letter-frequency (prefer letters close to English ref)
+        const plaintextCandidates = [];
+        // Build letter score helper
+        function letterScore(ch) {
+            const k = String(ch).toLowerCase();
+            if (ENGLISH_REF[k] !== undefined) return ENGLISH_REF[k];
+            // small penalty for non-letters
+            return 0.1;
+        }
+        const chosen = cipherNums.map(c => {
+            const s = mapping[c.toString()];
+            if (!s || s.size === 0) return '?';
+            if (s.size === 1) return String.fromCodePoint(Array.from(s)[0]);
+            // choose element with highest letterScore
+            const arr = Array.from(s);
+            arr.sort((a,b) => letterScore(String.fromCodePoint(b)) - letterScore(String.fromCodePoint(a)));
+            return String.fromCodePoint(arr[0]);
+        });
+        const guessed = chosen.join('');
+        document.getElementById('decryptOut').textContent = `(freq-heuristic) Guessed plaintext:\n\n${guessed}`;
+        updatePlainFreqDisplay(guessed);
+    });
+
+    // helpers
+    function ensureLastCipher(){
+        if (!lastCipher) {
+            const raw = document.getElementById('cipherOut').textContent.trim();
+            if (!raw) { alert('No ciphertext: encrypt first or paste a JSON array in the ciphertext area.'); return; }
+            try {
+                const parsed = JSON.parse(raw);
+                lastCipher = parsed;
+            } catch(e) { alert('Ciphertext area does not contain a valid JSON array. Paste a JSON array or encrypt.'); lastCipher = null; return; }
+        }
+    }
+
+    function trialFactor(n,limit){
+        for (let i=2;i<=limit;i++){
+            if (n % i === 0) {
+                const j = n / i;
+                if (Number.isInteger(j)) return {p:i,q:j};
+            }
+        }
+        return null;
+    }
+
+    function updateCipherFreqDisplay(cipherArray){
+        if (!cipherArray || !cipherArray.length) {
+            document.getElementById('cipherFreq').textContent = '—';
+            return;
+        }
+        // ciphertext numeric distribution (counts of numeric values)
+        const counts = {};
+        for (const s of cipherArray) counts[s] = (counts[s] || 0) + 1;
+        // show top values
+        const entries = Object.entries(counts).sort((a,b)=>b[1]-a[1]);
+        let out = 'Value : Count\n';
+        entries.slice(0, 60).forEach(([v,c]) => out += `${v} : ${c}\n`);
+        document.getElementById('cipherFreq').textContent = out;
+    }
+
+    function updatePlainFreqDisplay(text){
+        // compute letter-frequency percent for a–z (case-insensitive)
+        const freq = {};
+        let tot = 0;
+        for (let i=97;i<=122;i++) freq[String.fromCharCode(i)]=0;
+        for (const ch of text.toLowerCase()) {
+            if (ch >= 'a' && ch <= 'z') { freq[ch]++; tot++; }
+        }
+        const outLines = [];
+        if (tot === 0) {
+            for (const k in freq) outLines.push(`${k.toUpperCase()}: 0.0%`);
+        } else {
+            for (const k in freq) {
+                const pct = (freq[k]/tot)*100;
+                outLines.push(`${k.toUpperCase()}: ${pct.toFixed(2)}% (${freq[k]})`);
+            }
+        }
+        document.getElementById('plainFreq').textContent = outLines.join('\n');
+    }
+
+    // Optional: auto-generate a sample at load (simulate homework2-like behavior)
+    window.addEventListener('load', ()=>{
+        // generate keys and encrypt the default text so the page shows outputs
+        document.getElementById('genKeysBtn').click();
+        setTimeout(()=>{ document.getElementById('encryptBtn').click(); }, 120);
+    });
+
+    </script>
+</body>
+</html>
