@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Homework 5 — Measures of Location and Dispersion</title>
+  <link rel="stylesheet" href="css/style.css">
+  <!-- MathJax for rendering LaTeX math -->
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" defer></script>
+</head>
+<body>
+  <header>
+    <h1>Cybersecurity Statistics Blog</h1>
+    <p>by Alessandro Polidori // ID: 1906738</p>
+  </header>
+
+  <main>
+    <h2>Homework 5 — Measures of Location and Dispersion</h2>
+
+    <section>
+      <h3>Introduction</h3>
+      <p>
+        Measures of location (also called measures of central tendency) and measures of dispersion are fundamental descriptive statistics used to summarize and understand data. Measures of location describe where the center of a dataset lies; measures of dispersion quantify the spread or variability of the data around that center. Together they give a compact summary of a dataset and guide statistical modelling and decision-making.
+      </p>
+    </section>
+
+    <section>
+      <h3>Common Measures of Location</h3>
+
+      <h4>Arithmetic Mean (Mean)</h4>
+      <p>
+        The arithmetic mean is the sum of all observations divided by the number of observations. It is widely used because it has desirable mathematical properties (for example, it is the basis for variance and standard deviation, and it is the best predictor under squared-error loss).
+      </p>
+      <ul>
+        <li>Formula: \(\displaystyle\mu = \frac{1}{n}\sum_{i=1}^n x_i\)</li>
+        <li>Advantages: Efficient for estimation, uses all data points, easy to compute and interpret.</li>
+        <li>Limitations: Sensitive to outliers and skewed distributions; not robust.</li>
+        <li>Typical use cases: Scientific measurements, finance (average returns), modeling where normality is assumed.</li>
+      </ul>
+
+      <h4>Median</h4>
+      <p>
+        The median is the middle value when observations are ordered. For an even number of observations, it is commonly the average of the two central values. The median is a robust measure of central tendency and is less affected by extreme values.
+      </p>
+      <p>
+        If the ordered values are \(x_{(1)}\le\dots\le x_{(n)}\), the median is
+        \(x_{((n+1)/2)}\) for odd \(n\), and for even \(n\) typically
+        \(\displaystyle\mathrm{median} = \frac{x_{(n/2)}+x_{(n/2+1)}}{2}.\)
+      </p>
+      <ul>
+        <li>Advantages: Robust to outliers and skewed distributions; represents a typical observation when data are asymmetric.</li>
+        <li>Limitations: Ignores the exact magnitude of extreme values and some information about the distribution.</li>
+        <li>Typical use cases: Income, house prices, or any skewed data where robustness is desired.</li>
+      </ul>
+
+      <h4>Mode</h4>
+      <p>
+        The mode is the most frequent value in the dataset. For continuous data, modes may be estimated via density peaks. A dataset can be unimodal, bimodal, or multimodal.
+      </p>
+      <ul>
+        <li>Advantages: Useful for categorical data and to detect peaks in distributions.</li>
+        <li>Limitations: May be non-unique or unstable in small samples; not informative for continuous symmetric distributions where values rarely repeat.</li>
+        <li>Typical use cases: Categorical variables (e.g., most common category), identifying common ranges or clusters in data.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h3>Common Measures of Dispersion</h3>
+
+      <h4>Range</h4>
+      <p>
+        The range is the difference between the maximum and minimum values. It is simple but highly sensitive to outliers.
+      </p>
+      <ul>
+        <li>Advantages: Easy to compute and understand.</li>
+        <li>Limitations: Extremely sensitive to single outliers; ignores the distribution between extremes.</li>
+        <li>Use cases: Quick and coarse summaries, exploratory checks.</li>
+      </ul>
+
+      <h4>Variance and Standard Deviation</h4>
+      <p>
+        Variance is the average squared deviation from the mean. The standard deviation is the square root of the variance and has the same units as the original data.
+      </p>
+      <ul>
+        <li>Formulas: \(\displaystyle\mathrm{Var}_{pop} = \frac{1}{n}\sum_{i=1}^n (x_i - \mu)^2\) (population). For a sample, the unbiased estimator is
+        \(\displaystyle\mathrm{Var}_{s} = \frac{1}{n-1}\sum_{i=1}^n (x_i - \bar{x})^2\).</li>
+        <li>Advantages: Uses all observations, convenient algebraically (e.g., in inference and modeling), and relates directly to the normal distribution.</li>
+        <li>Limitations: Sensitive to outliers; units are squared (variance) which can be harder to interpret without taking the square root.</li>
+        <li>Use cases: Statistical inference, hypothesis testing, regression, risk measurement (e.g., volatility in finance).</li>
+      </ul>
+
+      <h4>Interquartile Range (IQR)</h4>
+      <p>
+        The IQR is the difference between the 75th percentile \(Q_3\) and the 25th percentile \(Q_1\):
+        \(\mathrm{IQR} = Q_3 - Q_1\). It measures the spread of the middle 50% of the data and is robust to outliers.
+      </p>
+      <ul>
+        <li>Advantages: Robust, informative about the central spread, commonly used in boxplots.</li>
+        <li>Limitations: Ignores tails beyond the central 50% and doesn't use all data points.</li>
+        <li>Use cases: Skewed distributions, detecting outliers, robust comparisons between groups.</li>
+      </ul>
+
+      <h4>Mean Absolute Deviation (MAD)</h4>
+      <p>
+        MAD is the average absolute deviation from a central point (commonly the median):
+        \(\displaystyle\mathrm{MAD} = \frac{1}{n}\sum_{i=1}^n |x_i - m|\), where \(m\) is the chosen center (e.g., the median). It is more robust than variance to extreme values when centered at the median.
+      </p>
+      <ul>
+        <li>Advantages: Interpretable in original units, less sensitive than variance to extreme outliers when centered at median.</li>
+        <li>Limitations: Less common in inferential statistics than variance-based measures.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h3>Comparisons and Practical Guidance</h3>
+      <p>
+        Choosing the right measures depends on the data's characteristics and the problem's goals. Below are practical recommendations:
+      </p>
+      <ul>
+        <li>If the data are approximately symmetric and there are no extreme outliers: use <strong>mean</strong> and <strong>standard deviation</strong>. These are efficient and work well with many statistical methods.</li>
+        <li>If the data are skewed or contain outliers: prefer <strong>median</strong> and <strong>IQR</strong> or <strong>MAD</strong> for robust summaries.</li>
+        <li>For categorical or discrete data: use <strong>mode</strong> and consider frequency tables or bar charts.</li>
+        <li>When modelling assumptions require specific measures: for example, linear regression typically centers on the mean and uses variance-based inference; quantile regression focuses on medians and other quantiles.</li>
+      </ul>
+
+      <div class="example" style="background: transparent; border-left-color: #ffccd5; padding-left: 0;">
+        <strong>Example:</strong> Income data are typically right-skewed, so the median is usually a better measure of central tendency than the mean. The IQR communicates the spread of typical incomes without being driven by a few extremely high earners.
+      </div>
+    </section>
+
+    <section>
+      <h3>Advantages and Limitations — Summary Table</h3>
+      <table>
+        <thead>
+          <tr><th>Measure</th><th>Advantage</th><th>Limitation</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Mean</td><td>Efficient, uses all data</td><td>Sensitive to outliers</td></tr>
+          <tr><td>Median</td><td>Robust to outliers</td><td>Ignores extreme magnitude</td></tr>
+          <tr><td>Mode</td><td>Good for categorical data</td><td>May be non-unique or unstable</td></tr>
+          <tr><td>Range</td><td>Simple</td><td>Extremely sensitive to outliers</td></tr>
+          <tr><td>Variance / SD</td><td>Algebraically convenient, links to normality</td><td>Units (variance) and sensitivity to outliers</td></tr>
+          <tr><td>IQR</td><td>Robust, describes central spread</td><td>Ignores tails</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h3>Practical Examples and Applications</h3>
+      <p>
+        - In quality control, standard deviation is used to set tolerance limits because process variation is often assumed normal.<br>
+        - In reporting household wealth or income, median and IQR are preferred to avoid distortion by extreme values.<br>
+        - In risk management in finance, variance and standard deviation are used to quantify volatility; however, heavy-tailed risks motivate alternative measures (Value at Risk, expected shortfall).
+      </p>
+    </section>
+
+    <section>
+      <h3>Conclusion</h3>
+      <p>
+        Both measures of location and dispersion are necessary to describe data effectively. The choice between them should be driven by data characteristics (symmetry, outliers, measurement scale) and analysis goals (robust description vs. inferential modeling). In applied work, it's often best to report multiple complementary measures (e.g., median + IQR and mean + SD) and visualize the data (histogram, boxplot) to give a fuller picture.
+      </p>
+    </section>
+
+    <section>
+      <h3>Further Reading</h3>
+      <ul>
+        <li>Hoel, P. G., Port, S. C., & Stone, C. J. (1971). Introduction to Probability Theory and Statistical Inference.</li>
+        <li>Wasserman, L. (2004). All of Statistics: A Concise Course in Statistical Inference.</li>
+        <li>Hampel, F. R., Ronchetti, E. M., Rousseeuw, P. J., & Stahel, W. A. (1986). Robust Statistics: The Approach Based on Influence Functions.</li>
+      </ul>
+    </section>
+    <p><a href="index.html">← Back to Home</a></p>
+  </main>
+
+  <footer>
+    &copy; 2025 Alessandro Polidori
+  </footer>
+
+</body>
+</html>

@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Homework 6 — Online Algorithms for Mean and Variance</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    pre { background: rgba(255,255,255,0.03); padding: 0.75rem; overflow:auto; }
+    .controls { margin: 1rem 0; }
+    input[type='number'] { width: 10rem; padding: 0.3rem; }
+    button { padding: 0.4rem 0.7rem; margin-left: 0.5rem; }
+    .result { background: rgba(255,255,255,0.03); padding: 0.75rem; border-radius: 6px; margin-top: 0.5rem; }
+  </style>
+  <!-- MathJax for rendering LaTeX math -->
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" defer></script>
+</head>
+<body>
+  <header>
+    <h1>Cybersecurity Statistics Blog</h1>
+    <p>by Alessandro Polidori // ID: 1906738</p>
+  </header>
+
+  <main>
+    <h2>Homework 6 — Online algorithms for mean and variance</h2>
+
+    <section>
+      <h3>Task</h3>
+      <p>
+        Derive the simplest recurrence relationships for the arithmetic mean and variance, and implement online algorithms that update these statistics incrementally as new data arrives. Avoid batch formulas; prefer numerically stable methods.
+      </p>
+    </section>
+
+    <section>
+      <h3>Derivation (mean)</h3>
+      <p>
+        Let x_1,...,x_n be the sequence of observations and let \(\mu_n\) be the mean after n observations. Then:
+      </p>
+      <div class="math">
+        \[
+        \mu_n = \frac{1}{n}\sum_{i=1}^n x_i,
+        \qquad
+        \mu_{n+1} = \frac{1}{n+1}\left(n\mu_n + x_{n+1}\right),
+        \]
+        \[
+        \Rightarrow\quad \mu_{n+1} = \mu_n + \frac{x_{n+1} - \mu_n}{n+1}.
+        \]
+      </div>
+    </section>
+
+    <section>
+      <h3>Derivation (variance) — stable recurrence (Welford)</h3>
+      <p>
+        The naive recurrence for variance is numerically unstable. A stable approach is Welford's algorithm which updates the mean and the sum of squared deviations incrementally.
+      </p>
+      <div class="math">
+        \[
+        M2_n = \sum_{i=1}^n (x_i - \mu_n)^2.
+        \]
+        \[
+        	ext{When }x\text{ arrives: }\begin{aligned}
+        n' &= n + 1,\\
+        \delta &= x - \mu_n,\\
+        \mu' &= \mu_n + \frac{\delta}{n'},\\
+        \delta' &= x - \mu',\\
+        M2' &= M2_n + \delta\cdot\delta'.
+        \end{aligned}
+        \]
+        \[
+        	ext{Population variance }= \frac{M2'}{n'},\qquad
+        	ext{Sample variance }= \frac{M2'}{n'-1}\ (n'>1).
+        \]
+      </div>
+      <p>
+        This formulation avoids catastrophic cancellation because the updates use differences with the running mean.
+      </p>
+    </section>
+
+    <section>
+      <h3>Implementation (JavaScript)</h3>
+      <p>Below is a small interactive demo implementing the online updates (mean and variance) and comparing results to batch computations for verification.</p>
+
+      <div class="controls">
+        <input id="valueInput" type="number" step="any" placeholder="Enter a number">
+        <button id="addBtn">Add value</button>
+        <button id="resetBtn">Reset</button>
+      </div>
+
+      <div class="result" id="stats">
+        <strong>Count:</strong> <span id="count">0</span><br>
+        <strong>Online mean:</strong> <span id="onlineMean">—</span><br>
+        <strong>Online variance (population):</strong> <span id="onlineVar">—</span><br>
+        <strong>Online variance (sample):</strong> <span id="onlineSVar">—</span><br>
+        <strong>Batch mean:</strong> <span id="batchMean">—</span><br>
+        <strong>Batch variance (sample):</strong> <span id="batchSVar">—</span>
+      </div>
+
+      <script>
+        // Welford online algorithm implementation
+        class OnlineStats {
+          constructor() {
+            this.n = 0;
+            this.mean = 0;
+            this.M2 = 0; // sum of squares of differences from the mean
+          }
+
+          add(x) {
+            const prevMean = this.mean;
+            this.n += 1;
+            const delta = x - prevMean;
+            this.mean = prevMean + delta / this.n;
+            const delta2 = x - this.mean;
+            this.M2 += delta * delta2;
+          }
+
+          reset() {
+            this.n = 0; this.mean = 0; this.M2 = 0;
+          }
+
+          get count() { return this.n; }
+          get onlineMean() { return this.n ? this.mean : NaN; }
+          get populationVariance() { return this.n ? this.M2 / this.n : NaN; }
+          get sampleVariance() { return this.n > 1 ? this.M2 / (this.n - 1) : NaN; }
+        }
+
+        // Batch helpers for verification
+        function batchMean(arr) {
+          if (arr.length === 0) return NaN;
+          const s = arr.reduce((a,b) => a + b, 0);
+          return s / arr.length;
+        }
+        function batchSampleVariance(arr) {
+          if (arr.length < 2) return NaN;
+          const mu = batchMean(arr);
+          const ssd = arr.reduce((acc, v) => acc + (v - mu) * (v - mu), 0);
+          return ssd / (arr.length - 1);
+        }
+
+        const stats = new OnlineStats();
+        const buffer = [];
+
+        const countEl = document.getElementById('count');
+        const onlineMeanEl = document.getElementById('onlineMean');
+        const onlineVarEl = document.getElementById('onlineVar');
+        const onlineSVarEl = document.getElementById('onlineSVar');
+        const batchMeanEl = document.getElementById('batchMean');
+        const batchSVarEl = document.getElementById('batchSVar');
+
+        // Format numbers without exponential notation. Uses Intl.NumberFormat to keep
+        // a readable number of decimal places and avoid scientific notation in the UI.
+        function formatNumber(x, maxFrac = 6) {
+          if (!Number.isFinite(x)) return '—';
+          try {
+            const nf = new Intl.NumberFormat(undefined, { maximumFractionDigits: maxFrac, useGrouping: false });
+            let s = nf.format(x);
+            // Trim trailing zeros after decimal point
+            if (s.indexOf('.') !== -1) {
+              s = s.replace(/\.0+$/, '').replace(/(\.\d+?)0+$/, '$1');
+            }
+            return s;
+          } catch (e) {
+            // Fallback
+            return Number(x).toFixed(Math.max(0, Math.min(12, maxFrac)));
+          }
+        }
+
+        function updateDisplay() {
+          countEl.textContent = stats.count > 0 ? stats.count : '—';
+          onlineMeanEl.textContent = formatNumber(stats.onlineMean, 6);
+          onlineVarEl.textContent = formatNumber(stats.populationVariance, 6);
+          onlineSVarEl.textContent = formatNumber(stats.sampleVariance, 6);
+          batchMeanEl.textContent = buffer.length ? formatNumber(batchMean(buffer), 6) : '—';
+          batchSVarEl.textContent = buffer.length > 1 ? formatNumber(batchSampleVariance(buffer), 6) : '—';
+        }
+
+        document.getElementById('addBtn').addEventListener('click', () => {
+          const val = parseFloat(document.getElementById('valueInput').value);
+          if (Number.isFinite(val)) {
+            buffer.push(val);
+            stats.add(val);
+            updateDisplay();
+            document.getElementById('valueInput').value = '';
+            document.getElementById('valueInput').focus();
+          }
+        });
+
+        document.getElementById('resetBtn').addEventListener('click', () => {
+          buffer.length = 0; stats.reset(); updateDisplay();
+        });
+
+        // Initialize display with no values (no demo data)
+        updateDisplay();
+      </script>
+
+    </section>
+    <p><a href="index.html">← Back to Home</a></p>
+  </main>
+
+  <footer>
+    &copy; 2025 Alessandro Polidori
+  </footer>
+</body>
+</html>
