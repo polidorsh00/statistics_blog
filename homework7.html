@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Homework 7 — Server security as a random walk</title>
+  <link rel="stylesheet" href="css/style.css">
+  <!-- MathJax -->
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" defer></script>
+  <style>
+    .controls { margin: 1rem 0; display:flex; gap:0.5rem; align-items:center; flex-wrap:wrap }
+    label { font-weight:600 }
+    input[type=number], input[type=range] { padding:0.25rem }
+    #chart { width:100%; height:320px; }
+    .legend { display:flex; gap:1rem; align-items:center; margin-top:0.5rem }
+    .bar { fill:#ff99a8 }
+    .theory { fill:#ffccd5; opacity:0.8 }
+    .note { font-size:0.9rem; color:#ddd }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Cybersecurity Statistics Blog</h1>
+    <p>by Alessandro Polidori // ID: 1906738</p>
+  </header>
+
+  <main>
+    <h2>Homework 7 — Server security trajectories, random walk and binomial convergence</h2>
+
+    <section>
+      <h3>Problem</h3>
+      <p>
+        Given a server that receives weekly security updates for <em>n</em> weeks and <em>m</em> attackers who can breach the system independently with probability <em>p</em>, we simulate many random trajectories of the server's weekly outcome. For each week, if at least one attacker succeeds the server is <strong>breached</strong> that week (assign score −1), otherwise it remains <strong>secure</strong> (assign score +1). We treat the weekly +1/−1 sequence as a random walk and study the distribution of the final cumulative score after <em>n</em> weeks.
+      </p>
+      <p class="note">
+        Weekly breach probability: \(\Pr(\text{breach in week}) = 1 - (1-p)^m\). Therefore the probability a week is secure is \(q = (1-p)^m\).
+        The number of secure weeks \(S\) follows \(\mathrm{Binomial}(n,q)\). The final total score is \(T = 2S - n\) (ranges from \(-n\) to \(+n\) in steps of 2).
+      </p>
+    </section>
+
+    <section>
+      <h3>Interactive simulation</h3>
+      <div class="controls">
+        <label>Weeks n: <input id="nInput" type="number" min="1" value="20"></label>
+        <label>Attackers m: <input id="mInput" type="number" min="1" value="1"></label>
+        <label>Attack prob p: <input id="pInput" type="number" min="0" max="1" step="0.01" value="0.1"></label>
+        <label>Trajectories (sim): <input id="simInput" type="number" min="100" step="100" value="10000"></label>
+        <button id="runBtn">Run simulation</button>
+        <button id="clearBtn">Clear</button>
+      </div>
+
+      <div id="chartWrap">
+        <svg id="chart" viewBox="0 0 800 320" preserveAspectRatio="none"></svg>
+        <div class="legend"><div style="width:12px;height:12px;background:#ff99a8;border-radius:2px"></div>Simulated counts &nbsp; <div style="width:12px;height:12px;background:#ffccd5;border-radius:2px"></div>Theoretical binomial (scaled)</div>
+      </div>
+
+      <p class="note">Tip: increase <em>n</em> and <em>sim</em> to see convergence visually.</p>
+
+      <script>
+        // Helpers
+        function binomialPMF(n, q) {
+          // returns array of probabilities for S=0..n
+          const pmf = new Array(n+1).fill(0);
+          pmf[0] = Math.pow(1-q, n); // but safer to compute iteratively
+          // use multiplicative formula to avoid factorials
+          pmf[0] = Math.pow(1-q, n);
+          for (let k=1;k<=n;k++) {
+            pmf[k] = pmf[k-1] * ( (n - (k-1)) / k ) * (q / (1-q));
+          }
+          return pmf;
+        }
+
+        function simulateFinalScores(n, m, p, sims) {
+          const breachProb = 1 - Math.pow(1-p, m);
+          const secureProb = 1 - breachProb; // = (1-p)^m
+          const counts = new Map(); // key = total score T, value = count
+          for (let i=0;i<sims;i++) {
+            let S = 0; // number of secure weeks
+            for (let week=0; week<n; week++) {
+              if (Math.random() < secureProb) S++;
+            }
+            const T = 2*S - n;
+            counts.set(T, (counts.get(T) || 0) + 1);
+          }
+          return counts;
+        }
+
+        function drawHistogram(svgEl, n, simCounts, pmf, sims) {
+          const width = 800, height = 320, margin = {top:20,right:20,bottom:40,left:40};
+          svgEl.setAttribute('viewBox', `0 0 ${width} ${height}`);
+          while (svgEl.firstChild) svgEl.removeChild(svgEl.firstChild);
+
+          const plotW = width - margin.left - margin.right;
+          const plotH = height - margin.top - margin.bottom;
+          const g = (tag, attrs={}) => {
+            const el = document.createElementNS('http://www.w3.org/2000/svg', tag);
+            for (const k in attrs) el.setAttribute(k, attrs[k]);
+            svgEl.appendChild(el); return el;
+          };
+
+          // map S=0..n to T=2S-n
+          const Svals = [...Array(n+1).keys()];
+          const Tvals = Svals.map(s => 2*s - n);
+
+          const maxCount = Math.max(...[...simCounts.values(), 0]);
+          const maxProb = Math.max(...pmf);
+          const scaleCount = v => (v / Math.max(maxCount, 1)) * plotH;
+          const scaleProb = p => (p / Math.max(maxProb, 1)) * plotH;
+
+          // draw axes labels
+          g('rect', {x:margin.left, y:margin.top, width:plotW, height:plotH, fill:'transparent'});
+
+          // bars for simulated counts
+          const barW = plotW / (n+1) * 0.7;
+          Svals.forEach((s,i)=>{
+            const T = Tvals[i];
+            const count = simCounts.get(T) || 0;
+            const x = margin.left + i*(plotW/(n+1)) + (plotW/(n+1)-barW)/2;
+            const y = margin.top + plotH - scaleCount(count);
+            g('rect',{x:x, y:y, width:barW, height: Math.max(0.5, scaleCount(count)), class:'bar'});
+          });
+
+          // overlay theoretical pmf scaled to sims
+          // draw as lighter bars or line
+          Svals.forEach((s,i)=>{
+            const prob = pmf[i];
+            const scaled = prob * sims;
+            const x = margin.left + i*(plotW/(n+1)) + (plotW/(n+1)-barW)/2;
+            const y = margin.top + plotH - scaleProb(prob) * (sims / Math.max(1, sims)) ; // same scale: scaleProb already uses pmf max
+            // instead draw thin rectangle representing pmf scaled to plotH
+            const y2 = margin.top + plotH - scaleProb(prob);
+            g('rect',{x:x + barW*0.15, y:y2, width: barW*0.7, height: Math.max(1, scaleProb(prob)), class:'theory'});
+          });
+
+          // X axis ticks: show T values
+          Svals.forEach((s,i)=>{
+            const T = Tvals[i];
+            const x = margin.left + i*(plotW/(n+1)) + (plotW/(n+1))/2;
+            const tx = g('text',{x:x, y: height - 8, 'text-anchor':'middle', 'font-size':10, fill:'#fff'});
+            tx.textContent = T;
+          });
+
+          // Title
+          const title = g('text',{x:width/2, y:14, 'text-anchor':'middle', 'font-size':14, fill:'#fff'});
+          title.textContent = `Final total score distribution (T = 2S - n), n=${n}`;
+
+          // Y label
+          const ylab = g('text',{x:10, y:margin.top + plotH/2, transform:`rotate(-90 10 ${margin.top + plotH/2})`, 'text-anchor':'middle', 'font-size':11, fill:'#fff'});
+          ylab.textContent = 'Counts / scaled probability';
+        }
+
+        // Wire UI
+        const nInput = document.getElementById('nInput');
+        const mInput = document.getElementById('mInput');
+        const pInput = document.getElementById('pInput');
+        const simInput = document.getElementById('simInput');
+        const runBtn = document.getElementById('runBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const chart = document.getElementById('chart');
+
+        runBtn.addEventListener('click', () => {
+          const n = Math.max(1, parseInt(nInput.value));
+          const m = Math.max(1, parseInt(mInput.value));
+          const p = Math.max(0, Math.min(1, parseFloat(pInput.value)));
+          const sims = Math.max(100, parseInt(simInput.value));
+
+          // simulate
+          const simCounts = simulateFinalScores(n, m, p, sims);
+
+          // theoretical pmf for S and convert to array
+          const q = Math.pow(1-p, m); // secure prob
+          const pmf = binomialPMF(n, q); // S=0..n
+
+          drawHistogram(chart, n, simCounts, pmf, sims);
+        });
+
+        clearBtn.addEventListener('click', () => {
+          while (chart.firstChild) chart.removeChild(chart.firstChild);
+        });
+      </script>
+
+    </section>
+
+    <section>
+      <h3>Discussion and connection to random walk</h3>
+      <p>
+        Interpreting each week as +1 for secure and −1 for breached produces a simple random walk with independent increments. The final total after n steps is directly determined by the number of secure weeks S: \(T=2S-n\). Because S is binomial with parameter \(q=(1-p)^m\), the distribution of T is a shifted-and-scaled binomial. As n and the number of simulated trajectories grow, the simulated histogram converges to the theoretical binomial probabilities (law of large numbers). For large n, the binomial itself is well-approximated by a normal distribution with mean \(nq\) and variance \(nq(1-q)\).
+      </p>
+    </section>
+
+    <p><a href="index.html">← Back to Home</a></p>
+  </main>
+
+  <footer>
+    &copy; 2025 Alessandro Polidori
+  </footer>
+</body>
+</html>

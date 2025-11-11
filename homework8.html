@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Homework 8 — Analogies between Homework 7 and Homework 4</title>
+  <link rel="stylesheet" href="css/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" defer></script>
+  <style>
+    main { max-width:900px; margin:32px auto; padding:18px; }
+    pre { background: rgba(255,255,255,0.03); padding:0.75rem; overflow:auto }
+    .boxed { border-left:4px solid #800020; background:rgba(0,0,0,0.03); padding:12px; border-radius:6px }
+    .pascal { font-family: monospace; white-space: pre; color:#fff; background:transparent }
+    table.pascal { border-collapse:collapse; margin:8px 0 }
+    table.pascal td { padding:4px 8px; text-align:center; color:#fff }
+    .small { font-size:0.9rem; color:#ddd }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Cybersecurity Statistics Blog</h1>
+    <p>by Alessandro Polidori // ID: 1906738</p>
+  </header>
+
+  <main>
+    <h2>Homework 8 — Analogies between Homework 7 and Homework 4</h2>
+
+    <section>
+      <h3>Overview</h3>
+      <p>
+        Both Homework 4 and Homework 7 are built on the same probabilistic foundation: repeated independent Bernoulli trials (a Bernoulli process). Homework 4 simulated many trajectories of independent trials (coin tosses) to illustrate the Law of Large Numbers (LLN). Homework 7 simulated weekly server outcomes (secure vs breached) and mapped the number of secure weeks to a random walk final score. This page highlights the analogies and differences and explains how binomial coefficients, Pascal's triangle, the binomial expansion and certain combinatorial identities (including links to Fibonacci numbers) tie the problems together.
+      </p>
+    </section>
+
+    <section>
+      <h3>Bernoulli process and the LLN (common ground)</h3>
+      <p>
+        A Bernoulli process is a sequence of independent trials where each trial results in "success" with probability \(p\) and "failure" with probability \(1-p\). For \(n\) trials, the number of successes \(S_n\) has the binomial distribution:
+      </p>
+      <p class="boxed">\[\Pr(S_n = k) = \binom{n}{k} p^k (1-p)^{n-k},\quad k=0,1,\dots,n.\]</p>
+      <p>
+        The Law of Large Numbers states that the sample frequency \(\bar X_n = S_n/n\) converges (in probability) to \(p\) as \(n\to\infty\): for any \(\varepsilon>0\),
+      </p>
+      <p class="boxed">\[\Pr\bigl(|\bar X_n - p| > \varepsilon\bigr) \to 0 \quad\text{as } n\to\infty.\]</p>
+      <p>
+        In Homework 4 the trials were coin tosses with \(p=0.5\); trajectories plotted \(\bar X_n\) vs \(n\) and showed empirical convergence to \(0.5\). In Homework 7 each week is a Bernoulli trial with success = "secure week" and probability \(q=(1-p)^m\) (no attacker succeeds among \(m\) independent attackers each with success prob \(p\)). Thus Homework 7 is also a Bernoulli process with parameter \(q\), and the count of secure weeks \(S\) over \(n\) weeks is binomial \(\mathrm{Bin}(n,q)\). The LLN guarantees that \(S/n\) concentrates near \(q\) for large \(n\).
+      </p>
+    </section>
+
+    <section>
+      <h3>Random walk perspective</h3>
+      <p>
+        Homework 4 focuses on the empirical frequency \(\bar X_n\) (a normalized count). Homework 7 often uses the "signed-step" viewpoint where a secure week contributes \(+1\) and a breached week contributes \(-1\). If the number of secure weeks is \(S\), the final total score after \(n\) weeks is
+      </p>
+      <p class="boxed">\[T = (+1)\cdot S + (-1)\cdot (n-S) = 2S - n.\]</p>
+      <p>
+        Therefore the distribution of \(T\) is a shifted-and-scaled binomial. Mapping between the two views is straightforward and highlights a key analogy: the same binomial probabilities that govern counts in Homework 4 determine the random-walk endpoint distribution in Homework 7.
+      </p>
+    </section>
+
+    <section>
+      <h3>Binomial coefficients and Pascal's triangle</h3>
+      <p>
+        The binomial coefficients \(\binom{n}{k}\) are the combinatorial counts in the binomial probability mass function and they appear as entries of Pascal's triangle. They satisfy the recurrence
+      </p>
+      <p class="boxed">\[\binom{n}{k} = \binom{n-1}{k-1} + \binom{n-1}{k},\quad 1\le k\le n-1,\]</p>
+      <p>
+        and sum to \(2^n\): \(\sum_{k=0}^n \binom{n}{k} = (1+1)^n = 2^n\). The triangle provides an immediate way to list the probabilities for \(S\) when \(p=1/2\): each entry divided by \(2^n\) is the probability of that number of heads.
+      </p>
+      <div class="pascal">
+        <strong>Pascal's triangle (first 8 rows):</strong>
+        <table class="pascal" aria-hidden="true">
+          <tr><td>1</td></tr>
+          <tr><td>1</td><td>1</td></tr>
+          <tr><td>1</td><td>2</td><td>1</td></tr>
+          <tr><td>1</td><td>3</td><td>3</td><td>1</td></tr>
+          <tr><td>1</td><td>4</td><td>6</td><td>4</td><td>1</td></tr>
+          <tr><td>1</td><td>5</td><td>10</td><td>10</td><td>5</td><td>1</td></tr>
+          <tr><td>1</td><td>6</td><td>15</td><td>20</td><td>15</td><td>6</td><td>1</td></tr>
+          <tr><td>1</td><td>7</td><td>21</td><td>35</td><td>35</td><td>21</td><td>7</td><td>1</td></tr>
+        </table>
+      </div>
+    </section>
+
+    <section>
+      <h3>Binomial expansion and probabilistic sums</h3>
+      <p>
+        The binomial theorem
+      </p>
+      <p class="boxed">\[(x+y)^n = \sum_{k=0}^n \binom{n}{k} x^k y^{n-k}\]</p>
+      <p>
+        is closely related to probabilities: setting \(x=p\) and \(y=1-p\) gives the full probability distribution of \(S\). Moments of the binomial distribution can be derived using generating functions or properties of the binomial expansion (for example using derivatives of \((p+ (1-p))^n\)).
+      </p>
+    </section>
+
+    <section>
+      <h3>Combinatorial identities, coefficients and normal approximation</h3>
+      <p>
+        Important properties useful in both homeworks include:
+      </p>
+      <ul>
+        <li>Mean: \(\mathbb{E}[S_n] = np\). For Homework 7 this becomes \(nq\) with \(q=(1-p)^m\).</li>
+        <li>Variance: \(\mathrm{Var}(S_n) = np(1-p)\). After scaling, \(\mathrm{Var}(\bar X_n) = p(1-p)/n\), which explains LLN concentration.</li>
+        <li>Central binomial coefficients \(\binom{n}{\lfloor n/2\rfloor}\) dominate the distribution center for symmetric \(p=1/2\), and their asymptotic growth is related to \(\approx 2^n / \sqrt{\pi n/2}\) (Stirling's approximation), connecting to the normal approximation via the de Moivre–Laplace theorem (special case of the CLT).</li>
+      </ul>
+    </section>
+
+    <section>
+      <h3>Fibonacci numbers and Pascal's triangle</h3>
+      <p>
+        A classical combinatorial identity links Pascal's triangle to the Fibonacci sequence: the sums of the shallow diagonals of Pascal's triangle produce Fibonacci numbers. For example,
+      </p>
+      <p class="boxed">\[F_0 = 0,\; F_1 = 1,\; F_{n} = F_{n-1} + F_{n-2},\]</p>
+      <p class="boxed">\[F_n = \sum_{k=0}^{\lfloor (n-1)/2\rfloor} \binom{n-1-k}{k}.\]</p>
+      <p>
+        This identity reflects a deep combinatorial structure: different counting problems (binomial choices, compositions, tilings) are connected through Pascal's triangle. While Fibonacci numbers do not directly describe binomial probabilities, the connection shows how combinatorial coefficients encode many classical integer sequences.
+      </p>
+    </section>
+
+    <section>
+      <h3>Similarities and differences — summary</h3>
+      <table>
+        <thead><tr><th>Aspect</th><th>Homework 4</th><th>Homework 7</th></tr></thead>
+        <tbody>
+          <tr><td>Basic model</td><td>Bernoulli trials (coin tosses) with p (often 0.5)</td><td>Bernoulli trials per week with success prob \(q=(1-p)^m\)</td></tr>
+          <tr><td>Quantity studied</td><td>Empirical frequency \(\bar X_n = S/n\)</td><td>Number of secure weeks \(S\) or signed final score \(T=2S-n\)</td></tr>
+          <tr><td>Distribution</td><td>\(S\sim\mathrm{Bin}(n,p)\)</td><td>\(S\sim\mathrm{Bin}(n,q)\) and \(T\) is an affine transform of \(S\)</td></tr>
+          <tr><td>Limit behaviour</td><td>LLN: \(\bar X_n\to p\)</td><td>LLN: \(S/n\to q\); random walk endpoint concentrated accordingly</td></tr>
+          <tr><td>Combinatorics</td><td>Binomial coefficients, Pascal triangle govern counts</td><td>Same combinatorics; mapping to random walk via \(T=2S-n\)</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h3>Concluding remarks</h3>
+      <p>
+        Homework 4 and Homework 7 are different viewpoints on the same probabilistic building blocks. Homework 4 emphasizes trajectories and convergence (LLN), while Homework 7 emphasizes final counts and their interpretation as a random walk endpoint. Both are connected by binomial probabilities, whose combinatorial backbone is Pascal's triangle and the binomial theorem. Recognising these links helps move fluently between sampling (frequencies), combinatorics (counts), and algebraic identities (expansions and generating functions).
+      </p>
+    </section>
+
+    <p><a href="index.html">← Back to Home</a></p>
+  </main>
+
+  <footer>
+    &copy; 2025 Alessandro Polidori
+  </footer>
+</body>
+</html>
