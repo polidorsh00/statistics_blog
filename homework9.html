@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Homework 9 — Interpretations, Axioms and Measure-Theoretic Probability</title>
+  <link rel="stylesheet" href="css/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" defer></script>
+  <style>
+    main { max-width:900px; margin:32px auto; padding:18px; }
+    .boxed { border-left:4px solid #800020; background:rgba(0,0,0,0.03); padding:12px; border-radius:6px }
+    pre { background: rgba(255,255,255,0.03); padding:0.75rem; overflow:auto }
+    .small { font-size:0.95rem; color:#ddd }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Cybersecurity Statistics Blog</h1>
+    <p>by Alessandro Polidori // ID: 1906738</p>
+  </header>
+
+  <main>
+    <h2>Homework 9 — Interpretations of Probability, Axioms and Measure Theory</h2>
+
+    <section>
+      <h3>Main interpretations of probability</h3>
+      <p>This section summarizes several common interpretations of probability and their emphases.</p>
+      <ul>
+        <li><strong>Classical (Laplace):</strong> probability is the ratio of favorable outcomes to equally possible outcomes (e.g. fair dice). Useful for symmetric, finite sample spaces, but limited when outcomes are not naturally equiprobable.</li>
+        <li><strong>Frequentist (von Mises):</strong> probability of an event is the long-run relative frequency of occurrence in repeated trials. This interpretation suits empirical experiments and motivates the Law of Large Numbers.</li>
+        <li><strong>Bayesian / Subjective:</strong> probability quantifies an agent's degree of belief given current information; updated by Bayes' theorem when new evidence arrives. Conceptually flexible and widely used for inference and decision-making.</li>
+        <li><strong>Geometric:</strong> probability is defined as a ratio of geometric measures (length, area, volume) — common in continuous models (e.g. Buffon's needle) where outcomes correspond to regions of space.</li>
+        <li><strong>Propensity / Physical:</strong> probability is a physical tendency (propensity) of a given experimental setup to produce an outcome. Often invoked in interpreting single-case probabilities in physics.</li>
+      </ul>
+      <p class="small">Each interpretation focuses on different practical uses; tensions arise when one tries to apply an interpretation outside its natural setting (e.g., assigning a frequentist probability to a single non-repeatable event).</p>
+    </section>
+
+    <section>
+      <h3>The axiomatic approach (Kolmogorov)</h3>
+      <p>
+        The axiomatic approach provides a formal framework that abstracts away interpretational differences and focuses on consistent rules any probability assignment should satisfy. A probability space is a triple \((\Omega,\mathcal{F},P)\) where:
+      </p>
+      <ul>
+        <li>\(\Omega\) is the sample space (set of all outcomes).</li>
+        <li>\(\mathcal{F}\) is a sigma-algebra of subsets of \(\Omega\) (the events) — closed under countable unions and complements.</li>
+        <li>\(P:\mathcal{F}\to[0,1]\) is a probability measure satisfying the axioms below.</li>
+      </ul>
+      <p class="boxed">Axioms (Kolmogorov):
+      \[\begin{aligned}
+      &\text{(1) Non-negativity: }P(A)\ge 0\quad\text{for all }A\in\mathcal{F},\\
+      &\text{(2) Normalization: }P(\Omega)=1,\\
+      &\text{(3) Countable additivity: if }A_1,A_2,\dots\text{ are disjoint, }P\Bigl(\bigcup_{i=1}^\infty A_i\Bigr)=\sum_{i=1}^\infty P(A_i).
+      \end{aligned}\]
+      </p>
+      <p>
+        These axioms do not force a single interpretation of probability — they merely require that any assignment of probabilities behaves coherently. In particular, frequentist, Bayesian and geometric probabilities that satisfy these axioms are all legitimate within the same mathematical theory. The axioms resolve conceptual inconsistencies by providing a common algebraic/measure-theoretic language in which statements from different interpretations can be compared and validated.
+      </p>
+    </section>
+
+    <section>
+      <h3>Probability theory and measure theory</h3>
+      <p>
+        Probability is a special case of measure theory. A probability measure is simply a measure with total mass 1. The measure-theoretic viewpoint clarifies and extends probability in several ways:
+      </p>
+      <ul>
+        <li><strong>Sigma-algebra \(\mathcal{F}\):</strong> ensures closure under complements and countable unions, making operations like limits of events well-defined (important for sequences of events and asymptotic results).</li>
+        <li><strong>Probability measure \(P\):</strong> is a countably additive set function assigning weights to events; many results (Law of Large Numbers, Central Limit Theorem) are cleanly expressed and proved using measures and integrals.</li>
+        <li><strong>Measurable functions and random variables:</strong> a random variable is a measurable function \(X:(\Omega,\mathcal{F})\to(\mathbb{R},\mathcal{B}(\mathbb{R}))\), where \(\mathcal{B}(\mathbb{R})\) is the Borel sigma-algebra. The distribution of \(X\) is the pushforward measure \(P_X(B)=P(X\in B)\).
+        </li>
+        <li><strong>Expectation as integral:</strong> the expectation of a (non-negative) random variable is an integral with respect to \(P\):
+        \[\mathbb{E}[X]=\int_\Omega X(\omega)\,P(d\omega)\quad\text{(when defined).}\]
+        Many limit theorems require dominated convergence or monotone convergence theorems — tools from measure theory.
+        </li>
+      </ul>
+      <p class="small">In short, measure theory supplies the language and technical tools (sigma-algebras, measurable maps, integrals) that make modern probability rigorous and powerful.</p>
+    </section>
+
+    <section>
+      <h3>Deriving subadditivity from the axioms</h3>
+      <p>
+        The <em>finite</em> subadditivity statement says for any two events \(A,B\in\mathcal{F}\):
+      </p>
+      <p class="boxed">\[P(A\cup B) \le P(A) + P(B).\]</p>
+      <p>Proof (two sets): decompose the union into disjoint parts:
+      \[A\cup B = A \cup (B\setminus A),\quad A \cap (B\setminus A)=\varnothing.\]
+      By countable (here finite) additivity and non-negativity,
+      \[P(A\cup B)=P(A)+P(B\setminus A)\le P(A)+P(B).\]
+      The same idea extends to any finite collection \(A_1,\dots,A_n\):
+      \[P\Bigl(\bigcup_{i=1}^n A_i\Bigr)\le\sum_{i=1}^n P(A_i),\]
+      because we can write the union as a disjoint union of pieces each contained in one of the \(A_i\) and apply additivity and non-negativity.
+      </p>
+      <p>
+        For a countable family \((A_i)_{i=1}^\infty\) the same argument (using a disjoint decomposition via
+        \(B_1=A_1,\;B_2=A_2\setminus A_1,\;B_3=A_3\setminus(A_1\cup A_2),\dots\)) and countable additivity yields the countable subadditivity:
+      </p>
+      <p class="boxed">\[P\Bigl(\bigcup_{i=1}^\infty A_i\Bigr) \le \sum_{i=1}^\infty P(A_i).\]</p>
+    </section>
+
+    <section>
+      <h3>Inclusion–exclusion principle (finite case)</h3>
+      <p>
+        The inclusion–exclusion formula gives an exact expression for the probability of a union of finitely many events in terms of their intersections. For two events:
+      </p>
+      <p class="boxed">\[P(A\cup B) = P(A) + P(B) - P(A\cap B).\]</p>
+      <p>
+        Proof: use additivity on the disjoint decomposition
+        \[A\cup B = A \cup (B\setminus A),\qquad P(B)=P(B\setminus A) + P(A\cap B),\]
+        and rearrange.
+      </p>
+      <p>
+        For three events the formula is:
+      </p>
+      <p class="boxed">\[\begin{aligned}P(A\cup B\cup C) &= P(A)+P(B)+P(C)\\&\quad - P(A\cap B)-P(A\cap C)-P(B\cap C)\\&\quad + P(A\cap B\cap C).
+      \end{aligned}\]</p>
+      <p>
+        A compact and conceptually clear proof uses indicator functions. Define the indicator (or indicator function) of an event \(A\) by
+        \(1_A(\omega)=\begin{cases}1,&\omega\in A,\\0,&\omega\notin A.\end{cases}\)
+      </p>
+      <p>
+        For a finite family of events \(A_1,\dots,A_n\), the indicator of the union satisfies the finite inclusion–exclusion identity:
+      </p>
+      <p>
+        \[
+          1_{\bigcup_{i=1}^n A_i}
+          = \sum_{k=1}^n (-1)^{k+1} \; \sum_{1 \le i_1 < \cdots < i_k \le n}
+            \prod_{t=1}^k 1_{A_{i_t}}.
+        \]
+      </p>
+      <p>
+        Taking expectation on both sides (linearity of expectation and the identity \(\mathbb{E}[1_E]=P(E)\)) yields the inclusion–exclusion formula for probabilities:
+      </p>
+      <p>
+        \[
+          P\Bigl(\bigcup_{i=1}^n A_i\Bigr)
+          = \sum_{k=1}^n (-1)^{k+1} \; \sum_{1 \le i_1 < \cdots < i_k \le n}
+            P\Bigl(\bigcap_{t=1}^k A_{i_t}\Bigr).
+        \]
+      </p>
+      <p class="small">This derivation is formal but relies only on linearity of expectation (which follows from countable additivity for simple functions) and algebra of indicators.</p>
+    </section>
+
+    <section>
+      <h3>Remarks and interpretation</h3>
+      <p>
+        The axiomatic approach clarifies that many apparent philosophical disagreements are about meaning and use, not mathematical validity. Once probability is formalized as a measure, different interpretations become (often) different sources of how to choose the measure \(P\) for a problem: empirical frequencies suggest one choice, symmetry another, and subjective information a third. The mathematics remains the same and provides tools (conditioning, expectation, convergence theorems) that are interpretation-independent.
+      </p>
+    </section>
+
+    <p><a href="index.html">← Back to Home</a></p>
+  </main>
+
+  <footer>
+    &copy; 2025 Alessandro Polidori
+  </footer>
+</body>
+</html>

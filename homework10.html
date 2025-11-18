@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Homework 10 — Simulating a Counting Process (Poisson Approximation)</title>
+  <link rel="stylesheet" href="css/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" defer></script>
+  <style>
+    main { max-width:900px; margin:32px auto; padding:18px; }
+    .controls { display:flex; gap:12px; flex-wrap:wrap; align-items:center }
+    label { font-size:0.95rem }
+    input[type="number"] { width:96px }
+    svg.hist { width:100%; height:200px; background: #111; border-radius:6px }
+    .small { font-size:0.95rem; color:#ddd }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Cybersecurity Statistics Blog</h1>
+    <p>by Alessandro Polidori // ID: 1906738</p>
+  </header>
+
+  <main>
+    <h2>Homework 10 — Simulating a Counting Process and the Poisson Approximation</h2>
+
+    <section>
+      <p>This exercise simulates a counting process on the time interval \( [0,T]\) where events (``successes'') occur independently and uniformly in time at a constant average rate \(\lambda\).</p>
+      <p>The simulation approximates the continuous-time process by dividing \([0,T]\) into \(n\) small subintervals and generating an event in each subinterval with probability \(\lambda/n\). When \(n\) is large this yields the classical Poisson process approximation: counts over disjoint intervals are independent and the number of events in \([0,T]\) is approximately Poisson with mean \(\lambda T\).</p>
+    </section>
+
+    <section>
+      <h3>Simulation</h3>
+      <div class="controls">
+        <label>T = <input id="inputT" type="number" min="0.01" step="0.01" value="1"></label>
+        <label>&lambda; = <input id="inputLambda" type="number" min="0" step="0.1" value="3"></label>
+        <label>n = <input id="inputN" type="number" min="10" step="10" value="5000"></label>
+        <label>trials = <input id="inputTrials" type="number" min="1" step="1" value="500"></label>
+        <button id="btnSim">Simulate</button>
+      </div>
+
+      <p class="small">Notes: increasing \(n\) refines the time discretization; increasing trials improves empirical distributions.</p>
+
+      <div id="results">
+        <p><strong>Summary:</strong> <span id="summary">—</span></p>
+        <svg id="hist" class="hist" viewBox="0 0 800 200" preserveAspectRatio="none"></svg>
+        <pre id="stats" style="background:rgba(255,255,255,0.03); padding:0.5rem; border-radius:6px"></pre>
+      </div>
+    </section>
+
+    <section>
+      <h3>Theoretical interpretation</h3>
+      <p>The construction above (many small independent Bernoulli trials each with probability \(\lambda/n\)) produces, in the limit \(n\to\infty\), a Poisson process with rate \(\lambda\):</p>
+      <ul>
+        <li>Counts in disjoint intervals are independent (independent increments).</li>
+        <li>The number of events in an interval of length \(t\) is Poisson distributed with mean \(\lambda t\): \(N(t)\sim\mathrm{Pois}(\lambda t)\).</li>
+        <li>Interarrival times are independent and exponentially distributed with parameter \(\lambda\).</li>
+      </ul>
+      <p>Thus \(\lambda\) is the average rate of events per unit time; for a window of length \(T\) the expected number of events is \(\mathbb{E}[N(T)]=\lambda T\) and \(\mathrm{Var}(N(T))=\lambda T\).</p>
+    </section>
+
+    <p><a href="index.html">← Back to Home</a></p>
+  </main>
+
+  <footer>
+    &copy; 2025 Alessandro Polidori
+  </footer>
+
+  <script>
+  // Simulation helpers
+  function simulateOnce(T, lambda, n) {
+    const dt = T / n;
+    const times = [];
+    const p = Math.min(1, lambda / n);
+    for (let i = 0; i < n; i++) {
+      if (Math.random() < p) {
+        // place uniformly inside the subinterval for realism
+        const t = (i + Math.random()) * dt;
+        times.push(t);
+      }
+    }
+    return {count: times.length, times};
+  }
+
+  function poissonPMF(k, mu) {
+    // naive but OK for small k
+    let p = Math.exp(-mu);
+    let term = p;
+    for (let i = 1; i <= k; i++) {
+      term *= mu / i;
+    }
+    return term;
+  }
+
+  function drawHistogram(svg, counts, meanTheo) {
+    const W = 800, H = 200;
+    const maxK = Math.max(...counts);
+    const freq = {};
+    for (const k of counts) freq[k] = (freq[k] || 0) + 1;
+    const keys = Object.keys(freq).map(Number).sort((a,b)=>a-b);
+    const maxFreq = Math.max(...Object.values(freq));
+    svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+    svg.innerHTML = '';
+    const pad = 20;
+    const barW = (W - pad*2) / Math.max(1, keys.length);
+    // bars
+    keys.forEach((k, i) => {
+      const h = (freq[k] / maxFreq) * (H - pad*2);
+      const x = pad + i * barW;
+      const y = H - pad - h;
+      const rect = document.createElementNS('http://www.w3.org/2000/svg','rect');
+      rect.setAttribute('x', x);
+      rect.setAttribute('y', y);
+      rect.setAttribute('width', Math.max(1, barW*0.9));
+      rect.setAttribute('height', h);
+      rect.setAttribute('fill', '#4ea3ff');
+      svg.appendChild(rect);
+      const text = document.createElementNS('http://www.w3.org/2000/svg','text');
+      text.setAttribute('x', x + barW*0.45);
+      text.setAttribute('y', H - 4);
+      text.setAttribute('fill', '#ddd');
+      text.setAttribute('font-size', '10');
+      text.setAttribute('text-anchor', 'middle');
+      text.textContent = k;
+      svg.appendChild(text);
+    });
+    // overlay theoretical Poisson (scaled)
+    const maxKPlot = Math.max(...keys, Math.ceil(meanTheo + 3*Math.sqrt(meanTheo)));
+    const scaleX = (W - pad*2) / Math.max(1, keys.length);
+    const scaleY = (H - pad*2) / maxFreq;
+    // compute theoretical frequencies scaled by trials
+    const trials = counts.length;
+    const theo = [];
+    for (let k = 0; k <= maxKPlot; k++) {
+      const pk = Math.exp(-meanTheo) * Math.pow(meanTheo, k) / (factorial(k));
+      theo.push({k, value: pk * trials});
+    }
+    // draw polyline
+    const points = theo.map((d, i) => {
+      const idx = keys.indexOf(d.k);
+      const x = pad + i * (barW || 1);
+      const y = H - pad - Math.min(H, d.value / (maxFreq || 1) * (H - pad*2));
+      return `${x},${y}`;
+    }).join(' ');
+    const poly = document.createElementNS('http://www.w3.org/2000/svg','polyline');
+    poly.setAttribute('points', points);
+    poly.setAttribute('fill', 'none');
+    poly.setAttribute('stroke', '#ffcc66');
+    poly.setAttribute('stroke-width', '2');
+    svg.appendChild(poly);
+  }
+
+  function factorial(k) { let r=1; for(let i=2;i<=k;i++) r*=i; return r; }
+
+  document.getElementById('btnSim').addEventListener('click', ()=>{
+    const T = parseFloat(document.getElementById('inputT').value) || 1;
+    const lambda = parseFloat(document.getElementById('inputLambda').value) || 1;
+    const n = parseInt(document.getElementById('inputN').value) || 5000;
+    const trials = parseInt(document.getElementById('inputTrials').value) || 200;
+    const counts = [];
+    const allTimes = [];
+    for (let s=0; s<trials; s++) {
+      const out = simulateOnce(T, lambda, n);
+      counts.push(out.count);
+      allTimes.push(out.times);
+    }
+    const mean = counts.reduce((a,b)=>a+b,0)/counts.length;
+    const varr = counts.reduce((a,b)=>a+(b-mean)*(b-mean),0)/counts.length;
+    document.getElementById('summary').textContent = `empirical mean=${mean.toFixed(3)}, var=${varr.toFixed(3)}; theoretical mean=\u03BB T = ${ (lambda*T).toFixed(3) }`;
+    document.getElementById('stats').textContent = `Counts sample size=${counts.length}\nMean=${mean.toFixed(4)}\nVariance=${varr.toFixed(4)}\nTheoretical Poisson(\u03BBT) mean=${(lambda*T).toFixed(4)}`;
+    drawHistogram(document.getElementById('hist'), counts, lambda*T);
+  });
+  </script>
+</body>
+</html>
